@@ -207,3 +207,10 @@ window.WelizaDB = {
   remove,
   getById
 };
+window.WelizaDB = {
+  getAll,
+  add,
+  update,
+  remove,
+  getById
+};
