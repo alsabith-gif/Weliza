@@ -3,7 +3,7 @@
  * Manages database states, authentication, ChartJS rendering, PDF generation, and CRM.
  */
 
-const { getAll, add, update, remove, getById } = window.WelizaDB;
+const { getAll, add, update, remove, getById } = window.WelizaDB || {};
 
 // Global variables to hold chart instances
 let salesChartInstance = null;
