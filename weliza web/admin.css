@@ -122,7 +122,7 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
 
 /* Sidebar navigation */
 .admin-sidebar {
-  width: 280px;
+  width: 248px;
   background: linear-gradient(180deg, hsl(265, 30%, 11%) 0%, hsl(265, 32%, 8%) 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
@@ -136,12 +136,12 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
 }
 
 .sidebar-brand {
-  height: 80px;
+  height: 64px;
   display: flex;
   align-items: center;
-  padding: 0 30px;
+  padding: 0 22px;
   font-family: var(--font-heading);
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 600;
   color: var(--white);
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
@@ -152,30 +152,30 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
 }
 
 .sidebar-menu {
-  padding: 30px 15px;
+  padding: 18px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   flex-grow: 1;
 }
 
 .menu-item {
   background: transparent;
   color: hsl(265, 10%, 75%);
-  padding: 14px 20px;
+  padding: 11px 16px;
   border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 15px;
-  font-size: 0.95rem;
+  gap: 12px;
+  font-size: 0.88rem;
   font-weight: 500;
   text-align: left;
   transition: var(--transition-normal);
 }
 
 .menu-item i, .menu-item svg {
-  width: 20px;
-  height: 20px;
+  width: 17px;
+  height: 17px;
   opacity: 0.7;
   transition: var(--transition-fast);
 }
@@ -211,13 +211,13 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
 
 /* Main content workspace */
 .admin-main {
-  margin-left: 280px;
+  margin-left: 248px;
   flex-grow: 1;
   flex-shrink: 1;
   min-width: 0;
-  width: calc(100% - 280px);
+  width: calc(100% - 248px);
   max-width: 1500px;
-  padding: 32px 36px;
+  padding: 24px 28px;
   min-height: 100vh;
   overflow-x: hidden;
   box-sizing: border-box;
@@ -232,17 +232,17 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 22px;
 }
 
 .header-title h2 {
-  font-size: 2rem;
+  font-size: 1.6rem;
   color: var(--white);
   font-family: var(--font-body);
 }
 
 .header-title p {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   color: hsl(265, 10%, 65%);
 }
 
@@ -258,18 +258,18 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
 
 .profile-name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   display: block;
 }
 
 .profile-role {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--gold-light);
 }
 
 .profile-avatar {
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
   color: var(--white);
   border-radius: 50%;
@@ -277,26 +277,26 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
   box-shadow: 0 4px 14px hsla(346, 60%, 50%, 0.35);
 }
 
 /* Statistics Cards */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
 .stats-card {
   background: linear-gradient(155deg, hsl(265, 22%, 13%) 0%, hsl(265, 24%, 10%) 100%);
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: var(--border-radius-md);
-  padding: 20px;
+  padding: 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
@@ -327,13 +327,13 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
 .card-danger::before { background-color: var(--danger); }
 
 .stats-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 11px;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   flex-shrink: 0;
 }
 
@@ -360,17 +360,17 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
 .card-danger .stats-icon { background: rgba(230, 57, 70, 0.1); color: var(--danger); }
 
 .stats-info span {
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   color: hsl(265, 10%, 65%);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .stats-info h3 {
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--white);
-  margin-top: 4px;
+  margin-top: 3px;
   font-family: var(--font-body);
 }
 
@@ -387,34 +387,39 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
 .charts-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 30px;
+  gap: 20px;
 }
 
 .chart-card {
   flex: 1;
-  min-width: 320px;
+  min-width: 300px;
   background: hsl(265, 20%, 11%);
   border: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: var(--border-radius-md);
-  padding: 24px;
+  padding: 18px;
   box-shadow: var(--shadow-sm);
   box-sizing: border-box;
 }
 
 .chart-card h4 {
   font-family: var(--font-body);
-  font-size: 1.1rem;
-  margin-bottom: 20px;
-  font-weight: 500;
+  font-size: 0.92rem;
+  margin-bottom: 14px;
+  font-weight: 600;
   color: var(--white);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: hsl(265, 10%, 70%);
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 
 .chart-container {
   position: relative;
-  height: 300px;
+  height: 260px;
   width: 100%;
 }
 
@@ -424,46 +429,59 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
   border: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: var(--border-radius-md);
   overflow-x: auto;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
   box-shadow: var(--shadow-sm);
 }
 
 .data-table {
   width: 100%;
-  min-width: 700px;
+  min-width: 560px;
   border-collapse: collapse;
   text-align: left;
 }
 
 .data-table th {
   background-color: hsl(265, 22%, 8%);
-  color: hsl(265, 10%, 80%);
+  color: hsl(265, 10%, 60%);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 18px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  letter-spacing: 0.6px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
 }
 
 .data-table td {
-  padding: 16px 24px;
+  padding: 10px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  font-size: 0.95rem;
-  color: hsl(265, 10%, 90%);
+  font-size: 0.85rem;
+  color: hsl(265, 10%, 88%);
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
 }
 
 .data-table tr:hover td {
-  background-color: rgba(255, 255, 255, 0.01);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Recent billings inside dashboard — compact & clean */
+#recentInvoicesTableBody td {
+  font-size: 0.82rem;
+  padding: 9px 14px;
 }
 
 /* Badge styles */
 .badge {
-  padding: 6px 12px;
-  border-radius: 30px;
-  font-size: 0.8rem;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.72rem;
   font-weight: 600;
   display: inline-flex;
+  letter-spacing: 0.3px;
 }
 
 .badge-paid {
@@ -754,26 +772,179 @@ body:has(.auth-wrapper), body:has(.admin-panel) {
   }
 }
 
+@media (max-width: 900px) {
+  .admin-sidebar {
+    width: 220px;
+  }
+  .admin-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    padding: 18px 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-panel {
     flex-direction: column;
   }
+
+  /* Sidebar becomes a top navigation bar */
   .admin-sidebar {
     width: 100%;
     height: auto;
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    flex-direction: column;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.4);
   }
+
+  .sidebar-brand {
+    height: 52px;
+    padding: 0 16px;
+    font-size: 1.2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
   .sidebar-menu {
     flex-direction: row;
     overflow-x: auto;
-    padding: 10px;
+    overflow-y: hidden;
+    padding: 8px 10px;
+    gap: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+
+  .sidebar-menu::-webkit-scrollbar {
+    display: none;
+  }
+
+  .menu-item {
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    font-size: 0.72rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 64px;
+  }
+
+  .menu-item i, .menu-item svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Remove left border accent on mobile — doesn't make sense horizontally */
+  .menu-item.active {
+    border-left: none;
+    border-bottom: 2px solid var(--gold-light);
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+
+  .sidebar-footer {
+    display: none; /* logout hidden on mobile to save space; put it in menu row instead */
+  }
+
   .admin-main {
     margin-left: 0;
-    padding: 20px;
+    width: 100%;
+    padding: 14px 12px;
   }
+
+  .admin-header {
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header-title h2 {
+    font-size: 1.25rem;
+  }
+
+  .profile-info {
+    display: none;
+  }
+
+  /* Stats grid: 2 columns on phone */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stats-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .stats-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .stats-info span {
+    font-size: 0.68rem;
+  }
+
+  .stats-info h3 {
+    font-size: 1rem;
+  }
+
   .charts-row {
     flex-direction: column;
+    gap: 14px;
+  }
+
+  .chart-card {
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .chart-container {
+    height: 200px;
+  }
+
+  /* Recent billings table: horizontally scrollable */
+  .chart-card .data-table {
+    min-width: 500px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
+
+  #recentInvoicesTableBody td {
+    font-size: 0.75rem;
+    padding: 8px 10px;
+  }
+
+  .search-bar-row {
+    padding: 10px 12px;
+  }
+
+  .search-input-wrapper input {
+    padding: 10px 12px 10px 38px;
+    font-size: 0.88rem;
+  }
+
+  .invoice-form-card,
+  .purchase-form-card {
+    padding: 16px;
+  }
+
+  .purchase-history-card {
+    padding: 16px;
+  }
+
+  .card-heading {
+    font-size: 1rem;
+    margin-bottom: 16px;
   }
 }
 
