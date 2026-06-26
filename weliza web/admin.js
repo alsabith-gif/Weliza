@@ -68,16 +68,20 @@ function checkAuthentication() {
 function setupAuthForm() {
   const form = document.getElementById('authForm');
   const errorMsg = document.getElementById('authError');
-
+  const passInput = document.getElementById('authPassword');
   form.onsubmit = (e) => {
     e.preventDefault();
-    const pass = document.getElementById('authPassword').value;
-
+    const pass = passInput.value;
     if (pass === ADMIN_PASS) {
       window.welizaLoggedIn = true;
       errorMsg.style.display = 'none';
       checkAuthentication();
-   } else {
+    } else {
+      errorMsg.style.display = 'block';
+      passInput.value = '';
+      passInput.focus();
+      passInput.style.border = '1px solid red';
+      setTimeout(() => { passInput.style.border = ''; }, 2000);
       errorMsg.textContent = '✕ Wrong password. Please try again.';
       errorMsg.style.display = 'block';
       document.getElementById('authPassword').value = '';
