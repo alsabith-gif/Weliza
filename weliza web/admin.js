@@ -110,6 +110,9 @@ async function initializeAdminWorkspace() {
   // Setup Client CRM Logic
   setupClientCRM();
 
+  // Setup CSV Bulk Import for Invoices
+  setupCsvImport();
+
   // Setup Logout Button
   document.getElementById('logoutBtn').addEventListener('click', () => {
     window.welizaLoggedIn = false;
@@ -1252,6 +1255,174 @@ function resetClientForm() {
   document.getElementById('btnCancelClientEdit').style.display = 'none';
 }
 
+
+// 8b. BULK CSV IMPORT FOR INVOICES
+function setupCsvImport() {
+  const templateBtn = document.getElementById('btnDownloadCsvTemplate');
+  const importBtn = document.getElementById('btnImportCsvBtn');
+  const fileInput = document.getElementById('importCsvFile');
+
+  if (!templateBtn || !importBtn || !fileInput) return;
+
+  templateBtn.addEventListener('click', downloadCsvTemplate);
+
+  importBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const result = await importInvoicesFromCsv(text);
+      alert(
+        `Import complete!\n\nAdded: ${result.added} invoice(s)\n` +
+        (result.skipped > 0 ? `Skipped: ${result.skipped} row(s) — check console for details.` : '')
+      );
+      await loadInvoicesList();
+      await reloadDashboardData();
+    } catch (err) {
+      console.error(err);
+      alert('Could not read that CSV file. Please use the downloaded template format.');
+    }
+  });
+}
+
+function downloadCsvTemplate() {
+  const headers = [
+    'invoiceNumber', 'clientName', 'clientGstin', 'clientAddress',
+    'date', 'dueDate', 'description', 'quantity', 'rate', 'gstRate', 'status'
+  ];
+  const example = [
+    'WEL-2025-0001', 'Jayalakshmi Wedding Center', '32AAAJW9876C1ZB',
+    'MG Road, Ernakulam, Kochi - 682035', '2025-04-10', '2025-04-25',
+    'Bulk Stitching - Prayer Dress Order', '100', '850', '5', 'Paid'
+  ];
+  const csvContent = headers.join(',') + '\n' + example.join(',') + '\n';
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'weliza-invoice-import-template.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// Very small CSV line parser (handles simple quoted fields with commas inside)
+function parseCsvLine(line) {
+  const result = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === ',' && !inQuotes) {
+      result.push(cur.trim());
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+async function importInvoicesFromCsv(csvText) {
+  const lines = csvText.split(/\r?\n/).filter(l => l.trim().length > 0);
+  if (lines.length < 2) {
+    throw new Error('CSV file appears empty.');
+  }
+
+  const headers = parseCsvLine(lines[0]).map(h => h.trim());
+  const requiredCols = ['invoiceNumber', 'clientName', 'date', 'quantity', 'rate', 'gstRate'];
+  const missing = requiredCols.filter(c => !headers.includes(c));
+  if (missing.length > 0) {
+    throw new Error('CSV missing required columns: ' + missing.join(', '));
+  }
+
+  const existingClients = await getAll('clients');
+  const existingInvoices = await getAll('invoices');
+  const existingInvoiceNumbers = new Set(existingInvoices.map(i => i.invoiceNumber));
+
+  let added = 0;
+  let skipped = 0;
+
+  for (let r = 1; r < lines.length; r++) {
+    const cells = parseCsvLine(lines[r]);
+    if (cells.length === 0 || cells.every(c => c === '')) continue;
+
+    const row = {};
+    headers.forEach((h, idx) => { row[h] = (cells[idx] || '').trim(); });
+
+    if (!row.invoiceNumber || !row.clientName || !row.date) {
+      console.warn('Skipping row (missing invoiceNumber/clientName/date):', row);
+      skipped++;
+      continue;
+    }
+
+    if (existingInvoiceNumbers.has(row.invoiceNumber)) {
+      console.warn('Skipping row (duplicate invoice number already in DB):', row.invoiceNumber);
+      skipped++;
+      continue;
+    }
+
+    // Find or create the client
+    let client = existingClients.find(c => c.name.toLowerCase() === row.clientName.toLowerCase());
+    if (!client) {
+      const newClientId = await add('clients', {
+        name: row.clientName,
+        gstin: row.clientGstin || '',
+        phone: row.clientPhone || '',
+        email: row.clientEmail || '',
+        address: row.clientAddress || '',
+        createdAt: new Date().toISOString()
+      });
+      client = { id: newClientId, name: row.clientName, gstin: row.clientGstin || '', address: row.clientAddress || '' };
+      existingClients.push(client);
+    }
+
+    const qty = parseFloat(row.quantity) || 0;
+    const rate = parseFloat(row.rate) || 0;
+    const gstRate = parseFloat(row.gstRate) || 0;
+    const taxable = qty * rate;
+    const gstAmount = (taxable * gstRate) / 100;
+    const total = taxable + gstAmount;
+
+    const item = {
+      desc: row.description || 'Imported invoice item',
+      qty, rate, gstRate, taxable, gstAmount, total
+    };
+
+    const status = (row.status && row.status.toLowerCase() === 'paid') ? 'Paid' : 'Pending';
+
+    const invoiceObj = {
+      invoiceNumber: row.invoiceNumber,
+      clientId: client.id,
+      clientName: client.name,
+      clientGstin: client.gstin || '',
+      clientAddress: client.address || '',
+      date: row.date,
+      dueDate: row.dueDate || row.date,
+      items: [item],
+      taxableTotal: taxable,
+      gstTotal: gstAmount,
+      grandTotal: total,
+      status,
+      createdAt: new Date().toISOString()
+    };
+
+    await add('invoices', invoiceObj);
+    existingInvoiceNumbers.add(row.invoiceNumber);
+    added++;
+  }
+
+  return { added, skipped };
+}
 
 // 9. CURRENCY FORMATTING UTILITIES
 function formatCurrency(value) {
