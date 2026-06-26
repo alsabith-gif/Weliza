@@ -312,6 +312,15 @@
               <option value="Pending">Pending</option>
             </select>
           </div>
+          <button type="button" class="btn btn-secondary" id="btnDownloadCsvTemplate" title="Download a blank CSV template">
+            <i data-lucide="download" style="width:16px; height:16px; margin-right:6px;"></i>
+            Template
+          </button>
+          <button type="button" class="btn btn-primary" id="btnImportCsvBtn" title="Bulk import invoices from a CSV file">
+            <i data-lucide="upload" style="width:16px; height:16px; margin-right:6px;"></i>
+            Import Invoices (CSV)
+          </button>
+          <input type="file" id="importCsvFile" accept=".csv" style="display:none;">
         </div>
 
         <div class="table-card">
