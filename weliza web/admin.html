@@ -120,19 +120,21 @@
           </div>
         </div>
 
-        <div class="grid-2">
-          <div class="panel" style="grid-column: span 1;">
+        <div class="dash-bottom-row">
+          <div class="panel dash-invoices-panel">
             <div class="panel-head">Recent Invoices</div>
-            <table class="tbl">
-              <thead><tr>
-                <th>Inv #</th><th>Client</th><th>Date</th><th>Total</th><th>Status</th>
-              </tr></thead>
-              <tbody id="recentInvoicesTableBody">
-                <tr><td colspan="5" class="tbl-empty">No recent invoices</td></tr>
-              </tbody>
-            </table>
+            <div class="tbl-scroll">
+              <table class="tbl">
+                <thead><tr>
+                  <th>Inv #</th><th>Client</th><th>Date</th><th>Grand Total</th><th>GST</th><th>Status</th>
+                </tr></thead>
+                <tbody id="recentInvoicesTableBody">
+                  <tr><td colspan="6" class="tbl-empty">No recent invoices</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div class="panel">
+          <div class="panel dash-chart-panel">
             <div class="panel-head">Revenue by Client</div>
             <div class="chart-box"><canvas id="clientChart"></canvas></div>
           </div>
