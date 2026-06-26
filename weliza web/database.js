@@ -87,7 +87,7 @@ function saveFallbackStore(storeName, data) {
 
 // --- PUBLIC DATABASE FUNCTIONS ---
 
-async function getAll(storeName) {
+async function dbGetAll(storeName) {
   if (useFallback) {
     return getFallbackStore(storeName);
   }
@@ -107,7 +107,7 @@ async function getAll(storeName) {
   }
 }
 
-async function add(storeName, data) {
+async function dbAdd(storeName, data) {
   if (useFallback) {
     const list = getFallbackStore(storeName);
     const newId = list.length > 0 ? Math.max(...list.map(item => item.id || 0)) + 1 : 1;
@@ -127,11 +127,11 @@ async function add(storeName, data) {
     });
   } catch (err) {
     useFallback = true;
-    return add(storeName, data);
+    return dbAdd(storeName, data);
   }
 }
 
-async function update(storeName, data) {
+async function dbUpdate(storeName, data) {
   if (useFallback) {
     const list = getFallbackStore(storeName);
     const idx = list.findIndex(item => item.id === data.id);
@@ -152,11 +152,11 @@ async function update(storeName, data) {
     });
   } catch (err) {
     useFallback = true;
-    return update(storeName, data);
+    return dbUpdate(storeName, data);
   }
 }
 
-async function remove(storeName, id) {
+async function dbRemove(storeName, id) {
   if (useFallback) {
     let list = getFallbackStore(storeName);
     list = list.filter(item => item.id !== id);
@@ -174,11 +174,11 @@ async function remove(storeName, id) {
     });
   } catch (err) {
     useFallback = true;
-    return remove(storeName, id);
+    return dbRemove(storeName, id);
   }
 }
 
-async function getById(storeName, id) {
+async function dbGetById(storeName, id) {
   if (useFallback) {
     const list = getFallbackStore(storeName);
     return list.find(item => item.id === id);
@@ -194,25 +194,16 @@ async function getById(storeName, id) {
     });
   } catch (err) {
     useFallback = true;
-    return getById(storeName, id);
+    return dbGetById(storeName, id);
   }
 }
 
 // Export to Global Scope
 window.WelizaDB = {
   initDB,
-  getAll,
-  add,
-  update,
-  remove,
-  getById
+  getAll: dbGetAll,
+  add: dbAdd,
+  update: dbUpdate,
+  remove: dbRemove,
+  getById: dbGetById
 };
-window.WelizaDB = {
-  getAll,
-  add,
-  update,
-  remove,
-  getById
-};
-\
-window.WelizaDB = { getAll, add, update, remove, getById };
