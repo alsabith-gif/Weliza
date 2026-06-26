@@ -4,446 +4,361 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weliza | Admin Portal</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
-  <!-- AUTH SCREEN (Locks the admin page initially) -->
-  <div class="auth-wrapper" id="authWrapper">
+  <!-- ═══ AUTH SCREEN ═══ -->
+  <div class="auth-screen" id="authWrapper">
     <div class="auth-card">
-      <div class="auth-logo">WELIZA<span>.</span></div>
-      <h3>Admin Authentication</h3>
-      <p>Please enter your credentials to access the statistics and invoice database.</p>
-      
-      <form id="authForm">
-        <div class="form-group" style="margin-bottom: 20px;">
-          <label for="authPassword">Enter Security Password</label>
-          <input type="password" id="authPassword" placeholder="••••••••" style="text-align: center; letter-spacing: 2px;" required>
-        </div>
-       <div id="authError" style="color: red; font-size: 0.85rem; margin-bottom: 15px; display: none; background: #fff0f0; border: 1px solid red; padding: 10px; border-radius: 6px; text-align: center;">
-          ✕ Wrong password. Please try again.
-        </div>
-        <button type="submit" class="btn auth-btn">
-          Access Dashboard
-          <i data-lucide="unlock" style="width: 18px; height: 18px; margin-left: 8px;"></i>
-        </button>
+      <div class="auth-wordmark">WELIZA<span>.</span></div>
+      <p class="auth-sub">Admin Portal</p>
+      <form id="authForm" class="auth-form">
+        <label class="field-label" for="authPassword">Password</label>
+        <input class="field-input" type="password" id="authPassword" placeholder="Enter password" required>
+        <div id="authError" class="auth-error" style="display:none;">Incorrect password — try again.</div>
+        <button type="submit" class="btn btn-gold btn-block">Unlock Dashboard</button>
       </form>
-      <div style="margin-top: 20px; text-align: center;">
-        <a href="index.html" style="font-size: 0.85rem; color: var(--gold-light); display: inline-flex; align-items: center; gap: 5px;">
-          <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Return to Website
-        </a>
-      </div>
+      <a href="index.html" class="auth-back">← Back to website</a>
     </div>
   </div>
 
-  <!-- ADMIN MAIN PANEL (Hidden until authenticated) -->
-  <div class="admin-panel" id="adminPanel" style="display: none;">
-    
-    <!-- Sidebar Navigation -->
-    <aside class="admin-sidebar">
-      <div class="sidebar-brand">
-        WELIZA<span>.</span> Admin
-      </div>
-      
-      <nav class="sidebar-menu">
-        <button class="menu-item active" data-tab="dashboard">
-          <i data-lucide="layout-dashboard"></i>
-          <span>Dashboard Stats</span>
-        </button>
-        <button class="menu-item" data-tab="invoice-creator">
-          <i data-lucide="file-plus"></i>
-          <span>Invoice Creator</span>
-        </button>
-        <button class="menu-item" data-tab="invoices-list">
-          <i data-lucide="file-text"></i>
-          <span>Sales & Invoices</span>
-        </button>
-        <button class="menu-item" data-tab="purchases">
-          <i data-lucide="shopping-cart"></i>
-          <span>Purchases / Expenses</span>
-        </button>
-        <button class="menu-item" data-tab="clients">
-          <i data-lucide="users"></i>
-          <span>Client CRM</span>
-        </button>
-      </nav>
+  <!-- ═══ ADMIN SHELL ═══ -->
+  <div class="shell" id="adminPanel" style="display:none;">
 
-      <div class="sidebar-footer">
-        <button class="menu-item logout-btn" id="logoutBtn">
-          <i data-lucide="log-out"></i>
-          <span>Log Out</span>
-        </button>
-      </div>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">W<span>.</span></div>
+      <nav class="sidebar-nav">
+        <a class="nav-link active" data-tab="dashboard">
+          <i data-lucide="bar-chart-2"></i><span>Dashboard</span>
+        </a>
+        <a class="nav-link" data-tab="invoice-creator">
+          <i data-lucide="file-plus-2"></i><span>New Invoice</span>
+        </a>
+        <a class="nav-link" data-tab="invoices-list">
+          <i data-lucide="receipt"></i><span>Invoices</span>
+        </a>
+        <a class="nav-link" data-tab="purchases">
+          <i data-lucide="package"></i><span>Purchases</span>
+        </a>
+        <a class="nav-link" data-tab="clients">
+          <i data-lucide="briefcase"></i><span>Clients</span>
+        </a>
+      </nav>
+      <button class="nav-link nav-logout" id="logoutBtn">
+        <i data-lucide="log-out"></i><span>Logout</span>
+      </button>
     </aside>
 
-    <!-- Main Workspace Content Area -->
-    <main class="admin-main">
-      
-      <!-- Top header bar -->
-      <header class="admin-header">
-        <div class="header-title">
-          <h2 id="currentTabTitle">Dashboard Stats</h2>
-          <p id="currentTabDesc">Real-time business performance, GST logs, and charts.</p>
+    <!-- Main -->
+    <div class="main">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div>
+          <h1 class="page-title" id="currentTabTitle">Dashboard</h1>
+          <p class="page-sub" id="currentTabDesc">Real-time business overview</p>
         </div>
-        <div class="admin-profile">
-          <div class="profile-info">
-            <span class="profile-name">Weliza Studio</span>
-            <span class="profile-role">Owner Access</span>
+        <div class="topbar-right">
+          <div class="user-chip">
+            <div class="user-dot">W</div>
+            <div>
+              <div class="user-name">Weliza Studio</div>
+              <div class="user-role">Owner</div>
+            </div>
           </div>
-          <div class="profile-avatar">W</div>
         </div>
       </header>
 
-      <!-- TAB 1: DASHBOARD STATS -->
-      <section class="tab-content active" id="tab-dashboard">
-        
-        <!-- Summary Cards Grid -->
-        <div class="stats-grid">
-          <div class="stats-card card-primary">
-            <div class="stats-icon"><i data-lucide="trending-up"></i></div>
-            <div class="stats-info">
-              <span>Gross Sales (Taxable)</span>
-              <h3 id="statGrossSales">₹0.00</h3>
-            </div>
-          </div>
-          
-          <div class="stats-card card-gold">
-            <div class="stats-icon"><i data-lucide="percent"></i></div>
-            <div class="stats-info">
-              <span>GST Output Tax (Collected)</span>
-              <h3 id="statGstOutput">₹0.00</h3>
-            </div>
-          </div>
+      <!-- ─── TAB: DASHBOARD ─── -->
+      <section class="view active" id="tab-dashboard">
 
-          <div class="stats-card card-purple">
-            <div class="stats-icon"><i data-lucide="trending-down"></i></div>
-            <div class="stats-info">
-              <span>Gross Purchases (Taxable)</span>
-              <h3 id="statGrossPurchases">₹0.00</h3>
-            </div>
+        <div class="kpi-row">
+          <div class="kpi accent-g">
+            <div class="kpi-label">Gross Sales</div>
+            <div class="kpi-value" id="statGrossSales">₹0.00</div>
+            <i data-lucide="trending-up" class="kpi-icon"></i>
           </div>
-
-          <div class="stats-card card-orange">
-            <div class="stats-icon"><i data-lucide="percent"></i></div>
-            <div class="stats-info">
-              <span>GST Input Tax (Paid)</span>
-              <h3 id="statGstInput">₹0.00</h3>
-            </div>
+          <div class="kpi accent-y">
+            <div class="kpi-label">GST Collected</div>
+            <div class="kpi-value" id="statGstOutput">₹0.00</div>
+            <i data-lucide="percent" class="kpi-icon"></i>
           </div>
-
-          <div class="stats-card card-success">
-            <div class="stats-icon"><i data-lucide="wallet"></i></div>
-            <div class="stats-info">
-              <span>Net GST Payable</span>
-              <h3 id="statGstNet">₹0.00</h3>
-            </div>
+          <div class="kpi accent-p">
+            <div class="kpi-label">Gross Purchases</div>
+            <div class="kpi-value" id="statGrossPurchases">₹0.00</div>
+            <i data-lucide="trending-down" class="kpi-icon"></i>
           </div>
-
-          <div class="stats-card card-danger">
-            <div class="stats-icon"><i data-lucide="clock"></i></div>
-            <div class="stats-info">
-              <span>Outstanding Payments</span>
-              <h3 id="statOutstanding">₹0.00</h3>
-            </div>
+          <div class="kpi accent-b">
+            <div class="kpi-label">GST Input Paid</div>
+            <div class="kpi-value" id="statGstInput">₹0.00</div>
+            <i data-lucide="receipt" class="kpi-icon"></i>
+          </div>
+          <div class="kpi accent-t">
+            <div class="kpi-label">Net GST Payable</div>
+            <div class="kpi-value" id="statGstNet">₹0.00</div>
+            <i data-lucide="wallet" class="kpi-icon"></i>
+          </div>
+          <div class="kpi accent-r">
+            <div class="kpi-label">Outstanding</div>
+            <div class="kpi-value" id="statOutstanding">₹0.00</div>
+            <i data-lucide="alert-circle" class="kpi-icon"></i>
           </div>
         </div>
 
-        <!-- Charts Row -->
-        <div class="charts-row">
-          <div class="chart-card">
-            <h4>Sales & Purchases Over Time</h4>
-            <div class="chart-container">
-              <canvas id="salesChart"></canvas>
-            </div>
+        <div class="grid-2 mb-3">
+          <div class="panel">
+            <div class="panel-head">Sales vs Purchases</div>
+            <div class="chart-box"><canvas id="salesChart"></canvas></div>
           </div>
-          
-          <div class="chart-card">
-            <h4>GST Outflow vs Input Tax Credits</h4>
-            <div class="chart-container">
-              <canvas id="gstChart"></canvas>
-            </div>
+          <div class="panel">
+            <div class="panel-head">GST Output vs Input</div>
+            <div class="chart-box"><canvas id="gstChart"></canvas></div>
           </div>
         </div>
 
-        <div class="charts-row">
-          <div class="chart-card">
-            <h4>Recent Billings</h4>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Inv No</th>
-                  <th>Client</th>
-                  <th>Date</th>
-                  <th>Grand Total</th>
-                  <th>GST</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
+        <div class="grid-2">
+          <div class="panel" style="grid-column: span 1;">
+            <div class="panel-head">Recent Invoices</div>
+            <table class="tbl">
+              <thead><tr>
+                <th>Inv #</th><th>Client</th><th>Date</th><th>Total</th><th>Status</th>
+              </tr></thead>
               <tbody id="recentInvoicesTableBody">
-                <tr><td colspan="6" style="text-align:center;">No recent invoices</td></tr>
+                <tr><td colspan="5" class="tbl-empty">No recent invoices</td></tr>
               </tbody>
             </table>
           </div>
-
-          <div class="chart-card">
-            <h4>Revenue Share by Client</h4>
-            <div class="chart-container">
-              <canvas id="clientChart"></canvas>
-            </div>
+          <div class="panel">
+            <div class="panel-head">Revenue by Client</div>
+            <div class="chart-box"><canvas id="clientChart"></canvas></div>
           </div>
         </div>
 
       </section>
 
-      <!-- TAB 2: INVOICE CREATOR -->
-      <section class="tab-content" id="tab-invoice-creator">
-        <div class="invoice-workspace">
-          
-          <!-- Invoice Form Details -->
-          <div class="invoice-form-card">
-            <h4 class="card-heading">New Invoice Details</h4>
-            
-            <form id="invoiceForm">
-              <div class="form-grid" style="margin-bottom: 20px;">
-                <div class="form-group">
-                  <label for="invClientSelect">Select Client</label>
-                  <div style="display: flex; gap: 8px;">
-                    <select id="invClientSelect" style="flex: 1;" required>
-                      <option value="">-- Choose Client --</option>
-                    </select>
-                    <button type="button" class="btn btn-primary" id="btnAddNewClientInline" title="Add New Client" style="padding: 10px;">
-                      <i data-lucide="plus"></i>
-                    </button>
+      <!-- ─── TAB: INVOICE CREATOR ─── -->
+      <section class="view" id="tab-invoice-creator">
+        <div class="invoice-layout">
+
+          <!-- Left: Form -->
+          <div class="invoice-form-col">
+            <div class="panel">
+              <div class="panel-head">Invoice Details</div>
+              <form id="invoiceForm">
+
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">Client</label>
+                    <div class="field-combo">
+                      <select id="invClientSelect" required>
+                        <option value="">Select client…</option>
+                      </select>
+                      <button type="button" class="btn btn-icon" id="btnAddNewClientInline" title="Add new client">
+                        <i data-lucide="plus"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Invoice No.</label>
+                    <input class="field-input" type="text" id="invNumber" placeholder="WEL-2026-0001" required>
                   </div>
                 </div>
-                <div class="form-group">
-                  <label for="invNumber">Invoice Number</label>
-                  <input type="text" id="invNumber" placeholder="INV-2026-0001" required>
-                </div>
-                <div class="form-group">
-                  <label for="invDate">Invoice Date</label>
-                  <input type="date" id="invDate" required>
-                </div>
-                <div class="form-group">
-                  <label for="invDueDate">Due Date</label>
-                  <input type="date" id="invDueDate" required>
-                </div>
-              </div>
 
-              <!-- Itemized Entry -->
-              <h5 style="margin: 20px 0 10px 0; font-family: var(--font-body); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: var(--gold-light);">Itemized Details</h5>
-              <div class="invoice-items-table-wrapper">
-                <table class="items-edit-table">
-                  <thead>
-                    <tr>
-                      <th style="width: 45%;">Description</th>
-                      <th style="width: 15%;">Quantity</th>
-                      <th style="width: 15%;">Rate (₹)</th>
-                      <th style="width: 15%;">GST %</th>
-                      <th style="width: 10%; text-align: center;">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="invoiceItemsTbody">
-                    <!-- Dynamic row input goes here -->
-                  </tbody>
-                </table>
-              </div>
-              
-              <button type="button" class="btn btn-secondary" id="btnAddItemRow" style="margin-top: 15px; padding: 8px 16px;">
-                <i data-lucide="plus" style="width:16px; height:16px; margin-right:5px;"></i> Add Row
-              </button>
-
-              <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 30px 0;">
-
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <div class="form-group">
-                  <label for="invPaymentStatus">Initial Payment Status</label>
-                  <select id="invPaymentStatus" style="width: 200px;">
-                    <option value="Paid">Paid</option>
-                    <option value="Pending" selected>Pending</option>
-                  </select>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">Invoice Date</label>
+                    <input class="field-input" type="date" id="invDate" required>
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Due Date</label>
+                    <input class="field-input" type="date" id="invDueDate" required>
+                  </div>
                 </div>
-                <div class="invoice-summary-display">
-                  <div>Taxable Total: <strong id="summaryTaxable">₹0.00</strong></div>
-                  <div>GST Total: <strong id="summaryGst">₹0.00</strong></div>
-                  <div style="font-size: 1.2rem; color: var(--gold-light); margin-top: 5px;">Grand Total: <strong id="summaryGrand">₹0.00</strong></div>
-                </div>
-              </div>
 
-              <div style="display: flex; gap: 15px;">
-                <button type="submit" class="btn btn-primary" style="flex: 1; padding: 14px 28px;">
-                  <i data-lucide="save" style="width:18px; height:18px; margin-right:8px;"></i>
-                  Save Invoice in DB
+                <div class="section-divider">Line Items</div>
+
+                <div class="items-scroll">
+                  <table class="items-tbl">
+                    <thead><tr>
+                      <th>Description</th><th>Qty</th><th>Rate ₹</th><th>GST%</th><th></th>
+                    </tr></thead>
+                    <tbody id="invoiceItemsTbody"></tbody>
+                  </table>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnAddItemRow" style="margin-top:8px;">
+                  <i data-lucide="plus"></i> Add line
                 </button>
-                <button type="button" class="btn btn-secondary" id="btnPrintPreviewBtn" style="flex: 1; padding: 14px 28px;">
-                  <i data-lucide="printer" style="width:18px; height:18px; margin-right:8px;"></i>
-                  Print / Download PDF
-                </button>
-              </div>
-            </form>
+
+                <div class="divider"></div>
+
+                <div class="inv-bottom">
+                  <div class="field" style="width:160px;">
+                    <label class="field-label">Payment Status</label>
+                    <select class="field-input" id="invPaymentStatus">
+                      <option value="Pending" selected>Pending</option>
+                      <option value="Paid">Paid</option>
+                    </select>
+                  </div>
+                  <div class="inv-totals">
+                    <div class="tot-row"><span>Taxable</span><strong id="summaryTaxable">₹0.00</strong></div>
+                    <div class="tot-row"><span>GST</span><strong id="summaryGst">₹0.00</strong></div>
+                    <div class="tot-row grand"><span>Grand Total</span><strong id="summaryGrand">₹0.00</strong></div>
+                  </div>
+                </div>
+
+                <div class="field-row" style="margin-top:14px;">
+                  <button type="submit" class="btn btn-gold" style="flex:1;">
+                    <i data-lucide="save"></i> Save Invoice
+                  </button>
+                  <button type="button" class="btn btn-outline" id="btnPrintPreviewBtn" style="flex:1;">
+                    <i data-lucide="printer"></i> Print / PDF
+                  </button>
+                </div>
+
+              </form>
+            </div>
           </div>
 
-          <!-- Preview Sheet Area -->
-          <div class="invoice-preview-card">
-            <h4 class="card-heading">Live Preview Sheet</h4>
-            <div class="invoice-print-container" id="invoicePrintSheet">
-              <!-- Dynamically populated clean template -->
-              <div style="text-align: center; color: var(--text-secondary); padding: 50px 0;">
-                <i data-lucide="file" style="width: 48px; height: 48px; opacity: 0.3; margin-bottom: 15px;"></i>
-                <p>Fill out invoice details to generate dynamic sheet preview.</p>
+          <!-- Right: Live Preview -->
+          <div class="invoice-preview-col">
+            <div class="panel invoice-preview-panel">
+              <div class="panel-head">Live Preview <span class="panel-badge">PDF ready</span></div>
+              <div class="preview-scroll">
+                <div class="invoice-print-container" id="invoicePrintSheet">
+                  <div class="preview-placeholder">
+                    <i data-lucide="file-text" style="width:32px;height:32px;opacity:0.2;"></i>
+                    <p>Fill in the form to see a live preview</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
         </div>
       </section>
 
-      <!-- TAB 3: SALES & INVOICES LIST -->
-      <section class="tab-content" id="tab-invoices-list">
-        <div class="search-bar-row">
-          <div class="search-input-wrapper">
-            <i data-lucide="search" class="search-icon"></i>
-            <input type="text" id="searchInvoicesInput" placeholder="Search by Invoice Number or Client Name...">
+      <!-- ─── TAB: INVOICES LIST ─── -->
+      <section class="view" id="tab-invoices-list">
+        <div class="toolbar mb-3">
+          <div class="search-field">
+            <i data-lucide="search"></i>
+            <input type="text" id="searchInvoicesInput" placeholder="Search by invoice no. or client…">
           </div>
-          <div class="search-filters">
-            <select id="filterInvoiceStatus">
-              <option value="all">All Statuses</option>
-              <option value="Paid">Paid</option>
-              <option value="Pending">Pending</option>
-            </select>
-          </div>
-          <button type="button" class="btn btn-secondary" id="btnDownloadCsvTemplate" title="Download a blank CSV template">
-            <i data-lucide="download" style="width:16px; height:16px; margin-right:6px;"></i>
-            Template
+          <select id="filterInvoiceStatus">
+            <option value="all">All statuses</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" id="btnDownloadCsvTemplate">
+            <i data-lucide="download"></i> Template
           </button>
-          <button type="button" class="btn btn-primary" id="btnImportCsvBtn" title="Bulk import invoices from a CSV file">
-            <i data-lucide="upload" style="width:16px; height:16px; margin-right:6px;"></i>
-            Import Invoices (CSV)
+          <button class="btn btn-outline btn-sm" id="btnImportCsvBtn">
+            <i data-lucide="upload"></i> Import CSV
           </button>
           <input type="file" id="importCsvFile" accept=".csv" style="display:none;">
         </div>
-
-        <div class="table-card">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Invoice No</th>
-                <th>Client Name</th>
-                <th>Date</th>
-                <th>Taxable Amount</th>
-                <th>GST Amount</th>
-                <th>Grand Total</th>
-                <th>Status</th>
-                <th style="text-align: center;">Actions</th>
-              </tr>
-            </thead>
+        <div class="panel">
+          <table class="tbl">
+            <thead><tr>
+              <th>Invoice No</th><th>Client</th><th>Date</th>
+              <th>Taxable</th><th>GST</th><th>Total</th>
+              <th>Status</th><th style="text-align:center;">Actions</th>
+            </tr></thead>
             <tbody id="invoicesTableBody">
-              <tr><td colspan="8" style="text-align:center;">Loading invoices...</td></tr>
+              <tr><td colspan="8" class="tbl-empty">Loading…</td></tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- TAB 4: PURCHASES / EXPENSES -->
-      <section class="tab-content" id="tab-purchases">
-        <div class="purchase-layout">
-          
-          <!-- Purchase Log Form -->
-          <div class="purchase-form-card">
-            <h4 class="card-heading">Log Raw Materials/Expenses</h4>
-            <form id="purchaseForm">
-              <div class="form-group" style="margin-bottom: 15px;">
-                <label for="purSupplier">Supplier Name</label>
-                <input type="text" id="purSupplier" placeholder="Thread Co., Lace Fabrics etc." required>
-              </div>
-              
-              <div class="form-grid" style="margin-bottom: 15px;">
-                <div class="form-group">
-                  <label for="purSupplierGstin">Supplier GSTIN (Optional)</label>
-                  <input type="text" id="purSupplierGstin" placeholder="32AAAAA0000A1Z0">
-                </div>
-                <div class="form-group">
-                  <label for="purBillNumber">Bill Number</label>
-                  <input type="text" id="purBillNumber" placeholder="BILL-98765" required>
-                </div>
-              </div>
+      <!-- ─── TAB: PURCHASES ─── -->
+      <section class="view" id="tab-purchases">
+        <div class="side-form-layout">
 
-              <div class="form-grid" style="margin-bottom: 15px;">
-                <div class="form-group">
-                  <label for="purDate">Purchase Date</label>
-                  <input type="date" id="purDate" required>
+          <div class="side-form-col">
+            <div class="panel">
+              <div class="panel-head">Log Purchase</div>
+              <form id="purchaseForm">
+                <div class="field">
+                  <label class="field-label">Supplier Name</label>
+                  <input class="field-input" type="text" id="purSupplier" placeholder="Thread Co., Lace Fabrics…" required>
                 </div>
-                <div class="form-group">
-                  <label for="purGstRate">GST Rate (%)</label>
-                  <select id="purGstRate">
-                    <option value="0">0% (Nil)</option>
-                    <option value="5" selected>5% (Fabric/Stitching)</option>
-                    <option value="12">12% (Apparel/Thread)</option>
-                    <option value="18">18% (Services/Accessories)</option>
-                  </select>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">GSTIN <em>(optional)</em></label>
+                    <input class="field-input" type="text" id="purSupplierGstin" placeholder="32AAAAA0000A1Z0">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Bill No.</label>
+                    <input class="field-input" type="text" id="purBillNumber" placeholder="BILL-001" required>
+                  </div>
                 </div>
-              </div>
-
-              <div class="form-grid" style="margin-bottom: 20px;">
-                <div class="form-group">
-                  <label for="purTaxable">Taxable Amount (₹)</label>
-                  <input type="number" step="0.01" id="purTaxable" placeholder="0.00" required>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">Date</label>
+                    <input class="field-input" type="date" id="purDate" required>
+                  </div>
+                  <div class="field">
+                    <label class="field-label">GST Rate</label>
+                    <select class="field-input" id="purGstRate">
+                      <option value="0">0% (Nil)</option>
+                      <option value="5" selected>5% (Fabric)</option>
+                      <option value="12">12% (Apparel)</option>
+                      <option value="18">18% (Services)</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="purGstAmount">GST Calculated (₹)</label>
-                  <input type="number" step="0.01" id="purGstAmount" placeholder="0.00" readonly>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">Taxable (₹)</label>
+                    <input class="field-input" type="number" step="0.01" id="purTaxable" placeholder="0.00" required>
+                  </div>
+                  <div class="field">
+                    <label class="field-label">GST (₹)</label>
+                    <input class="field-input" type="number" step="0.01" id="purGstAmount" placeholder="0.00" readonly>
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Total (₹)</label>
+                    <input class="field-input" type="number" step="0.01" id="purTotal" placeholder="0.00" required>
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="purTotal">Grand Total (₹)</label>
-                  <input type="number" step="0.01" id="purTotal" placeholder="0.00" required>
+                <div class="field">
+                  <label class="field-label">Attach Bill PDF</label>
+                  <div class="upload-zone">
+                    <i data-lucide="file-up"></i>
+                    <span>Click to upload PDF</span>
+                    <input type="file" id="purPdfFile" accept="application/pdf">
+                    <p id="pdfFileNameDisplay" class="upload-file-name"></p>
+                  </div>
                 </div>
-              </div>
-
-              <!-- PDF File Upload -->
-              <div class="form-group" style="margin-bottom: 30px;">
-                <label for="purPdfFile">Attach Supplier Bill / Invoice PDF</label>
-                <div class="pdf-upload-dropzone">
-                  <i data-lucide="file-up"></i>
-                  <span>Click to upload Invoice PDF</span>
-                  <input type="file" id="purPdfFile" accept="application/pdf">
-                  <p id="pdfFileNameDisplay" style="font-size: 0.8rem; color: var(--gold-light); margin-top: 5px; font-weight: 500;"></p>
-                </div>
-              </div>
-
-              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">
-                <i data-lucide="plus-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i>
-                Log Expense
-              </button>
-            </form>
+                <button type="submit" class="btn btn-gold btn-block" style="margin-top:4px;">
+                  <i data-lucide="plus-circle"></i> Log Expense
+                </button>
+              </form>
+            </div>
           </div>
 
-          <!-- Purchase History List -->
-          <div class="purchase-history-card">
-            <h4 class="card-heading">Purchase Expenses Database</h4>
-            
-            <div class="search-bar-row" style="margin-bottom: 20px; padding: 0;">
-              <div class="search-input-wrapper">
-                <i data-lucide="search" class="search-icon"></i>
-                <input type="text" id="searchPurchasesInput" placeholder="Search Supplier or Bill number...">
+          <div class="side-main-col">
+            <div class="panel">
+              <div class="panel-head">
+                Purchase Records
+                <div class="search-field mini">
+                  <i data-lucide="search"></i>
+                  <input type="text" id="searchPurchasesInput" placeholder="Search supplier or bill…">
+                </div>
               </div>
-            </div>
-
-            <div class="table-card" style="box-shadow: none; border: 0;">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Supplier</th>
-                    <th>Bill No</th>
-                    <th>Date</th>
-                    <th>Taxable</th>
-                    <th>GST</th>
-                    <th>Total</th>
-                    <th>Attachment</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
+              <table class="tbl">
+                <thead><tr>
+                  <th>Supplier</th><th>Bill</th><th>Date</th>
+                  <th>Taxable</th><th>GST</th><th>Total</th>
+                  <th>File</th><th>Del</th>
+                </tr></thead>
                 <tbody id="purchasesTableBody">
-                  <tr><td colspan="8" style="text-align:center;">No logged purchases.</td></tr>
+                  <tr><td colspan="8" class="tbl-empty">No purchases logged.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -452,77 +367,63 @@
         </div>
       </section>
 
-      <!-- TAB 5: CLIENT CRM -->
-      <section class="tab-content" id="tab-clients">
-        <div class="crm-layout">
-          
-          <!-- Client Add Form -->
-          <div class="purchase-form-card">
-            <h4 class="card-heading" id="crmFormHeading">Add New Client / Wedding Mall</h4>
-            <form id="clientForm">
-              <input type="hidden" id="clientIdHidden">
-              
-              <div class="form-group" style="margin-bottom: 15px;">
-                <label for="cliName">Client Name / Business Name</label>
-                <input type="text" id="cliName" placeholder="E.g. Jayalakshmi Wedding Center" required>
-              </div>
+      <!-- ─── TAB: CLIENTS ─── -->
+      <section class="view" id="tab-clients">
+        <div class="side-form-layout">
 
-              <div class="form-group" style="margin-bottom: 15px;">
-                <label for="cliGstin">Client GSTIN (Highly Recommended)</label>
-                <input type="text" id="cliGstin" placeholder="32ABCDE1234F1Z5">
-              </div>
-
-              <div class="form-grid" style="margin-bottom: 15px;">
-                <div class="form-group">
-                  <label for="cliPhone">Phone Number</label>
-                  <input type="tel" id="cliPhone" placeholder="+91 98765 43210" required>
+          <div class="side-form-col">
+            <div class="panel">
+              <div class="panel-head" id="crmFormHeading">Add Client</div>
+              <form id="clientForm">
+                <input type="hidden" id="clientIdHidden">
+                <div class="field">
+                  <label class="field-label">Business Name</label>
+                  <input class="field-input" type="text" id="cliName" placeholder="Jayalakshmi Wedding Center" required>
                 </div>
-                <div class="form-group">
-                  <label for="cliEmail">Email Address</label>
-                  <input type="email" id="cliEmail" placeholder="billing@mallname.com">
+                <div class="field">
+                  <label class="field-label">GSTIN <em>(recommended)</em></label>
+                  <input class="field-input" type="text" id="cliGstin" placeholder="32ABCDE1234F1Z5">
                 </div>
-              </div>
-
-              <div class="form-group" style="margin-bottom: 25px;">
-                <label for="cliAddress">Billing Address</label>
-                <textarea id="cliAddress" rows="3" placeholder="Street Address, City, Pincode" required></textarea>
-              </div>
-
-              <button type="submit" class="btn btn-primary" id="btnClientSubmit" style="width: 100%; padding: 14px;">
-                <i data-lucide="user-plus" style="width: 18px; height: 18px; margin-right: 8px;"></i>
-                <span>Add Client Profile</span>
-              </button>
-              <button type="button" class="btn btn-secondary" id="btnCancelClientEdit" style="width: 100%; padding: 10px; margin-top: 10px; display: none;">
-                Cancel Edit
-              </button>
-            </form>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">Phone</label>
+                    <input class="field-input" type="tel" id="cliPhone" placeholder="+91 98765 43210" required>
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Email</label>
+                    <input class="field-input" type="email" id="cliEmail" placeholder="billing@mall.com">
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="field-label">Billing Address</label>
+                  <textarea class="field-input" id="cliAddress" rows="3" placeholder="Street, City, Pincode" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-gold btn-block" id="btnClientSubmit">
+                  <i data-lucide="user-plus"></i> <span>Save Client</span>
+                </button>
+                <button type="button" class="btn btn-ghost btn-block" id="btnCancelClientEdit" style="margin-top:6px;display:none;">
+                  Cancel
+                </button>
+              </form>
+            </div>
           </div>
 
-          <!-- CRM Directory list -->
-          <div class="purchase-history-card">
-            <h4 class="card-heading">B2B Clients Directory</h4>
-            
-            <div class="search-bar-row" style="margin-bottom: 20px; padding: 0;">
-              <div class="search-input-wrapper">
-                <i data-lucide="search" class="search-icon"></i>
-                <input type="text" id="searchClientsInput" placeholder="Search clients by name or GSTIN...">
+          <div class="side-main-col">
+            <div class="panel">
+              <div class="panel-head">
+                Client Directory
+                <div class="search-field mini">
+                  <i data-lucide="search"></i>
+                  <input type="text" id="searchClientsInput" placeholder="Search name or GSTIN…">
+                </div>
               </div>
-            </div>
-
-            <div class="table-card" style="box-shadow: none; border: 0;">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Business Name</th>
-                    <th>GSTIN</th>
-                    <th>Phone</th>
-                    <th>Billing Address</th>
-                    <th>Business Volume</th>
-                    <th style="text-align: center;">Actions</th>
-                  </tr>
-                </thead>
+              <table class="tbl">
+                <thead><tr>
+                  <th>Business</th><th>GSTIN</th><th>Phone</th>
+                  <th>Address</th><th>Volume</th><th style="text-align:center;">Actions</th>
+                </tr></thead>
                 <tbody id="clientsTableBody">
-                  <tr><td colspan="6" style="text-align:center;">No clients registered.</td></tr>
+                  <tr><td colspan="6" class="tbl-empty">No clients yet.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -531,48 +432,29 @@
         </div>
       </section>
 
-    </main>
-  </div>
+    </div><!-- /main -->
+  </div><!-- /shell -->
 
-  <!-- Inline Client Modals for quick popup add inside Creator -->
-  <div class="modal-overlay" id="inlineClientModal">
-    <div class="modal-card" style="max-width: 450px;">
-      <div class="modal-close" id="inlineModalClose">
-        <i data-lucide="x"></i>
+  <!-- Quick Add Client Modal -->
+  <div class="modal-overlay" id="inlineClientModal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span>Quick Add Client</span>
+        <button class="modal-close" id="inlineModalClose"><i data-lucide="x"></i></button>
       </div>
-      <h3 style="font-family:var(--font-heading); color:var(--emerald); margin-bottom: 20px;">Quick Register Client</h3>
       <form id="inlineClientForm">
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label for="inlineName">Business Name</label>
-          <input type="text" id="inlineName" required>
-        </div>
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label for="inlineGstin">GSTIN</label>
-          <input type="text" id="inlineGstin">
-        </div>
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label for="inlinePhone">Phone</label>
-          <input type="tel" id="inlinePhone" required>
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-          <label for="inlineAddress">Billing Address</label>
-          <textarea id="inlineAddress" rows="2" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">
-          Save and Select
-        </button>
+        <div class="field"><label class="field-label">Business Name</label><input class="field-input" type="text" id="inlineName" required></div>
+        <div class="field"><label class="field-label">GSTIN</label><input class="field-input" type="text" id="inlineGstin"></div>
+        <div class="field"><label class="field-label">Phone</label><input class="field-input" type="tel" id="inlinePhone" required></div>
+        <div class="field"><label class="field-label">Address</label><textarea class="field-input" id="inlineAddress" rows="2" required></textarea></div>
+        <button type="submit" class="btn btn-gold btn-block" style="margin-top:8px;">Save & Select</button>
       </form>
     </div>
   </div>
 
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- ChartJS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Database Helper -->
   <script src="database.js?v=2"></script>
-  <!-- Admin Script -->
   <script src="admin.js?v=2"></script>
-
 </body>
 </html>
