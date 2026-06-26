@@ -52,7 +52,7 @@ function checkAuthentication() {
   const authWrapper = document.getElementById('authWrapper');
   const adminPanel = document.getElementById('adminPanel');
 
-  const isLoggedIn = getSessionItem('weliza_admin_auth') === 'true';
+  const isLoggedIn = window.welizaLoggedIn === true;
 
   if (isLoggedIn) {
     authWrapper.style.display = 'none';
@@ -74,7 +74,7 @@ function setupAuthForm() {
     const pass = document.getElementById('authPassword').value;
 
     if (pass === ADMIN_PASS) {
-      setSessionItem('weliza_admin_auth', 'true');
+      window.welizaLoggedIn = true;
       errorMsg.style.display = 'none';
       checkAuthentication();
     } else {
@@ -105,7 +105,7 @@ async function initializeAdminWorkspace() {
 
   // Setup Logout Button
   document.getElementById('logoutBtn').addEventListener('click', () => {
-    removeSessionItem('weliza_admin_auth');
+    window.welizaLoggedIn = false;
     location.reload();
   });
 }
