@@ -249,8 +249,8 @@ async function seedDatabaseIfNeeded() {
 
 // Tab navigation handler
 function setupTabs() {
-  const menuButtons = document.querySelectorAll('.menu-item[data-tab]');
-  const tabContents = document.querySelectorAll('.tab-content');
+  const menuButtons = document.querySelectorAll('.nav-link[data-tab]');
+  const tabContents = document.querySelectorAll('.view');
   const title = document.getElementById('currentTabTitle');
   const desc = document.getElementById('currentTabDesc');
 
@@ -649,7 +649,7 @@ async function setupInvoiceCreator() {
       resetInvoiceForm();
       
       // Auto switch to list tab
-      document.querySelector('.menu-item[data-tab="invoices-list"]').click();
+      document.querySelector('.nav-link[data-tab="invoices-list"]').click();
     } catch(err) {
       console.error(err);
       alert('Invoice save failed. Check console or duplicate invoice number.');
@@ -674,7 +674,7 @@ function addInvoiceRow(desc = '', qty = '', rate = '', gstRate = '5') {
         <option value="18" ${gstRate === '18' ? 'selected' : ''}>18%</option>
       </select>
     </td>
-    <td style="text-align: center;"><button type="button" class="btn btn-row-del" onclick="this.closest('tr').remove(); calculateInvoiceTotals();"><i data-lucide="trash-2"></i></button></td>
+    <td style="text-align: center;"><button type="button" class="btn btn-del" onclick="this.closest('tr').remove(); calculateInvoiceTotals();"><i data-lucide="trash-2"></i></button></td>
   `;
 
   tbody.appendChild(tr);
