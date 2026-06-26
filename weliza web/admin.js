@@ -77,8 +77,11 @@ function setupAuthForm() {
       window.welizaLoggedIn = true;
       errorMsg.style.display = 'none';
       checkAuthentication();
-    } else {
+   } else {
+      errorMsg.textContent = '✕ Wrong password. Please try again.';
       errorMsg.style.display = 'block';
+      document.getElementById('authPassword').value = '';
+      document.getElementById('authPassword').focus();
     }
   };
 }
