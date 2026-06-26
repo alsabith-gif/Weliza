@@ -528,7 +528,17 @@ textarea { resize: vertical; }
   .invoice-print-container th { background: #f4f4f4 !important; }
 }
 
-/* ─── RESPONSIVE ─────────────────────────────────── */
+/* ─── DASHBOARD BOTTOM ROW ───────────────────────── */
+.dash-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 10px; margin-top: 10px;
+}
+.dash-invoices-panel { min-width: 0; overflow: hidden; }
+.tbl-scroll { overflow-x: auto; }
+.dash-chart-panel { min-width: 0; }
+
+
 @media (max-width: 1100px) {
   .invoice-layout { grid-template-columns: 1fr; }
   .invoice-preview-panel { height: auto; }
@@ -544,4 +554,22 @@ textarea { resize: vertical; }
   .main { margin-left: 0; }
   .kpi-row { grid-template-columns: 1fr 1fr; }
   .field-row { flex-direction: column; }
+}
+
+
+/* Updated stacked layout for Invoice, Purchases and Clients */
+.invoice-layout,
+.side-form-layout{
+display:flex;
+flex-direction:column;
+gap:16px;
+}
+.invoice-form-col,.invoice-preview-col,
+.side-form-col,.side-table-col{
+width:100%;
+max-width:100%;
+flex:none;
+}
+.invoice-preview-panel{
+width:100%;
 }
