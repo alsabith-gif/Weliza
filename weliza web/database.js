@@ -5,7 +5,7 @@
  */
 
 const DB_NAME = 'WelizaDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let useFallback = false;
 
@@ -13,7 +13,8 @@ let useFallback = false;
 const memoryDB = {
   clients: [],
   invoices: [],
-  purchases: []
+  purchases: [],
+  itemPresets: []
 };
 
 /**
@@ -59,6 +60,11 @@ function initDB() {
 
         if (!db.objectStoreNames.contains('purchases')) {
           db.createObjectStore('purchases', { keyPath: 'id', autoIncrement: true });
+        }
+
+        if (!db.objectStoreNames.contains('itemPresets')) {
+          const presetStore = db.createObjectStore('itemPresets', { keyPath: 'id', autoIncrement: true });
+          presetStore.createIndex('name', 'name', { unique: false });
         }
       };
     } catch (e) {
