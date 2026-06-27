@@ -47,6 +47,9 @@
         <a class="nav-link" data-tab="clients">
           <i data-lucide="briefcase"></i><span>Clients</span>
         </a>
+        <a class="nav-link" data-tab="settings">
+          <i data-lucide="settings"></i><span>Settings</span>
+        </a>
       </nav>
       <button class="nav-link nav-logout" id="logoutBtn">
         <i data-lucide="log-out"></i><span>Logout</span>
@@ -56,11 +59,19 @@
     <!-- Main -->
     <div class="main">
 
+      <!-- Sidebar Overlay -->
+      <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
       <!-- Topbar -->
       <header class="topbar">
-        <div>
-          <h1 class="page-title" id="currentTabTitle">Dashboard</h1>
-          <p class="page-sub" id="currentTabDesc">Real-time business overview</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu">
+            <i data-lucide="menu"></i>
+          </button>
+          <div>
+            <h1 class="page-title" id="currentTabTitle">Dashboard</h1>
+            <p class="page-sub" id="currentTabDesc">Real-time business overview</p>
+          </div>
         </div>
         <div class="topbar-right">
           <div class="user-chip">
@@ -109,14 +120,14 @@
           </div>
         </div>
 
-        <div class="grid-2 mb-3">
-          <div class="panel">
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">
+          <div class="panel" style="width:100%;">
             <div class="panel-head">Sales vs Purchases</div>
-            <div class="chart-box"><canvas id="salesChart"></canvas></div>
+            <div class="chart-box" style="height:240px;"><canvas id="salesChart"></canvas></div>
           </div>
-          <div class="panel">
+          <div class="panel" style="width:100%;">
             <div class="panel-head">GST Output vs Input</div>
-            <div class="chart-box"><canvas id="gstChart"></canvas></div>
+            <div class="chart-box" style="height:240px;"><canvas id="gstChart"></canvas></div>
           </div>
         </div>
 
@@ -175,13 +186,15 @@
                     <label class="field-label">Invoice Date</label>
                     <input class="field-input" type="date" id="invDate" required>
                   </div>
-                  <div class="field">
-                    <label class="field-label">Due Date</label>
-                    <input class="field-input" type="date" id="invDueDate" required>
-                  </div>
+                  <input type="hidden" id="invDueDate" value="">
                 </div>
 
-                <div class="section-divider">Line Items</div>
+                <div class="section-divider" style="display:flex;align-items:center;justify-content:space-between;">
+                  <span>Line Items</span>
+                  <button type="button" class="btn btn-ghost btn-sm" id="btnManagePresets" style="font-size:0.78rem;padding:5px 10px;">
+                    <i data-lucide="settings-2" style="width:14px;height:14px;"></i> Manage Items
+                  </button>
+                </div>
 
                 <div class="items-scroll">
                   <table class="items-tbl">
@@ -191,6 +204,7 @@
                     <tbody id="invoiceItemsTbody"></tbody>
                   </table>
                 </div>
+                <datalist id="itemPresetsList"></datalist>
                 <button type="button" class="btn btn-ghost btn-sm" id="btnAddItemRow" style="margin-top:8px;">
                   <i data-lucide="plus"></i> Add line
                 </button>
@@ -262,18 +276,21 @@
             <i data-lucide="upload"></i> Import CSV
           </button>
           <input type="file" id="importCsvFile" accept=".csv" style="display:none;">
+          <button class="btn btn-outline btn-sm" id="btnAttachPdfBtn">
+            <i data-lucide="file-up"></i> Attach PDF
+          </button>
         </div>
         <div class="panel">
-          <table class="tbl">
+          <div class="panel-table-wrap"><table class="tbl">
             <thead><tr>
               <th>Invoice No</th><th>Client</th><th>Date</th>
               <th>Taxable</th><th>GST</th><th>Total</th>
-              <th>Status</th><th style="text-align:center;">Actions</th>
+              <th>Status</th><th style="text-align:center;">PDF</th><th style="text-align:center;">Actions</th>
             </tr></thead>
             <tbody id="invoicesTableBody">
               <tr><td colspan="8" class="tbl-empty">Loading…</td></tr>
             </tbody>
-          </table>
+          </table></div>
         </div>
       </section>
 
@@ -388,17 +405,41 @@
                 </div>
                 <div class="field-row">
                   <div class="field">
+                    <label class="field-label">PAN</label>
+                    <input class="field-input" type="text" id="cliPan" placeholder="ABCDE1234F">
+                  </div>
+                  <div class="field">
                     <label class="field-label">Phone</label>
                     <input class="field-input" type="tel" id="cliPhone" placeholder="+91 98765 43210" required>
                   </div>
-                  <div class="field">
-                    <label class="field-label">Email</label>
-                    <input class="field-input" type="email" id="cliEmail" placeholder="billing@mall.com">
-                  </div>
+                </div>
+                <div class="field">
+                  <label class="field-label">Email</label>
+                  <input class="field-input" type="email" id="cliEmail" placeholder="billing@mall.com">
                 </div>
                 <div class="field">
                   <label class="field-label">Billing Address</label>
-                  <textarea class="field-input" id="cliAddress" rows="3" placeholder="Street, City, Pincode" required></textarea>
+                  <textarea class="field-input" id="cliAddress" rows="2" placeholder="Street, building, area" required></textarea>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">City</label>
+                    <input class="field-input" type="text" id="cliCity" placeholder="Kochi">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">State</label>
+                    <input class="field-input" type="text" id="cliState" placeholder="Kerala">
+                  </div>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">Postal Code</label>
+                    <input class="field-input" type="text" id="cliPostalCode" placeholder="682001">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Country</label>
+                    <input class="field-input" type="text" id="cliCountry" placeholder="India" value="India">
+                  </div>
                 </div>
                 <button type="submit" class="btn btn-gold btn-block" id="btnClientSubmit">
                   <i data-lucide="user-plus"></i> <span>Save Client</span>
@@ -434,6 +475,87 @@
         </div>
       </section>
 
+      <!-- ─── TAB: SETTINGS ─── -->
+      <section class="view" id="tab-settings">
+        <div class="side-form-layout">
+
+          <!-- Billed From -->
+          <div class="side-form-col">
+            <div class="panel">
+              <div class="panel-head">Billed From (Your Business Details)</div>
+              <form id="billedFromForm">
+                <div class="field">
+                  <label class="field-label">Business Name</label>
+                  <input class="field-input" type="text" id="setBizName" placeholder="WELIZA DESIGN" required>
+                </div>
+                <div class="field">
+                  <label class="field-label">Address</label>
+                  <input class="field-input" type="text" id="setBizAddress" placeholder="Kozhikode, Kerala, India — 673620">
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">GSTIN</label>
+                    <input class="field-input" type="text" id="setBizGstin" placeholder="32HRJPS4251J1ZF">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">PAN</label>
+                    <input class="field-input" type="text" id="setBizPan" placeholder="HRJPS4251J">
+                  </div>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">Email</label>
+                    <input class="field-input" type="email" id="setBizEmail" placeholder="welizadesign@gmail.com">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Phone</label>
+                    <input class="field-input" type="text" id="setBizPhone" placeholder="+91 75929 45893">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-gold" style="margin-top:8px;">
+                  <i data-lucide="save"></i> Save Business Details
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Bank Details -->
+          <div class="side-form-col">
+            <div class="panel">
+              <div class="panel-head">Bank Details</div>
+              <form id="bankDetailsForm">
+                <div class="field">
+                  <label class="field-label">Account Name</label>
+                  <input class="field-input" type="text" id="setBankAccName" placeholder="WELIZA DESIGN">
+                </div>
+                <div class="field">
+                  <label class="field-label">Account Number</label>
+                  <input class="field-input" type="text" id="setBankAccNum" placeholder="8230953768">
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label">IFSC Code</label>
+                    <input class="field-input" type="text" id="setBankIfsc" placeholder="IDIB000K213">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Account Type</label>
+                    <input class="field-input" type="text" id="setBankAccType" placeholder="Current">
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="field-label">Bank Name</label>
+                  <input class="field-input" type="text" id="setBankName" placeholder="INDIAN BANK">
+                </div>
+                <button type="submit" class="btn btn-gold" style="margin-top:8px;">
+                  <i data-lucide="save"></i> Save Bank Details
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
     </div><!-- /main -->
   </div><!-- /shell -->
 
@@ -454,6 +576,74 @@
     </div>
   </div>
 
+  <!-- Manage Item Presets Modal -->
+  <div class="modal-overlay" id="itemPresetsModal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span>Manage Item Presets</span>
+        <button class="modal-close" id="presetsModalClose"><i data-lucide="x"></i></button>
+      </div>
+      <p style="font-size:0.8rem;color:#999;margin:-4px 0 14px;">
+        Save commonly used products/services so typing the name auto-fills rate &amp; GST%. You can still edit any value after it's filled in.
+      </p>
+      <form id="presetAddForm" class="field-row" style="align-items:flex-end;">
+        <div class="field" style="flex:2;">
+          <label class="field-label">Item Name</label>
+          <input class="field-input" type="text" id="presetName" placeholder="Prayer Dress" required>
+        </div>
+        <div class="field" style="flex:1;">
+          <label class="field-label">Rate ₹</label>
+          <input class="field-input" type="number" step="0.01" id="presetRate" placeholder="800" required>
+        </div>
+        <div class="field" style="flex:1;">
+          <label class="field-label">GST%</label>
+          <select class="field-input" id="presetGstRate">
+            <option value="0">0%</option>
+            <option value="5" selected>5%</option>
+            <option value="12">12%</option>
+            <option value="18">18%</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-gold" style="height:42px;"><i data-lucide="plus"></i></button>
+      </form>
+      <div class="divider" style="margin:14px 0;"></div>
+      <div id="presetsListContainer" style="max-height:260px;overflow-y:auto;">
+        <p style="text-align:center;color:#888;font-size:0.85rem;">No presets yet.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Attach PDF to Invoice Modal -->
+  <div class="modal-overlay" id="attachPdfModal" style="display:none;">
+    <div class="modal-card" style="max-width:420px;">
+      <div class="modal-head">
+        <span>Attach PDF to Invoice</span>
+        <button class="modal-close" id="attachPdfModalClose"><i data-lucide="x"></i></button>
+      </div>
+      <div style="padding:4px 0 14px;">
+        <p style="font-size:0.82rem;color:#888;margin:0 0 16px;">Select an invoice and upload a PDF file (bill, receipt, or any document) to attach it.</p>
+        <div class="field">
+          <label class="field-label">Select Invoice</label>
+          <select class="field-input" id="attachPdfInvoiceSelect">
+            <option value="">Loading invoices...</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label class="field-label">PDF File</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;border:1.5px dashed #c8d8d0;border-radius:8px;padding:14px 16px;background:#f9fefb;transition:border-color 0.2s;" id="attachPdfDropZone">
+            <i data-lucide="file-up" style="width:20px;height:20px;color:#1e4735;flex-shrink:0;"></i>
+            <span id="attachPdfFileName" style="font-size:0.85rem;color:#555;">Click to choose a PDF&hellip;</span>
+            <input type="file" id="attachPdfFileInput" accept="application/pdf" style="display:none;">
+          </label>
+        </div>
+        <div id="attachPdfError" style="display:none;font-size:0.82rem;color:#c0392b;margin-top:8px;"></div>
+        <button class="btn btn-gold btn-block" style="margin-top:16px;" id="attachPdfSaveBtn">
+          <i data-lucide="paperclip"></i> Attach PDF
+        </button>
+      </div>
+    </div>
+  </div>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="database.js?v=2"></script>
