@@ -110,8 +110,20 @@ async function initializeAdminWorkspace() {
   // Setup Client CRM Logic
   setupClientCRM();
 
+  // Setup Settings
+  setupSettings();
+
+  // Setup Attach PDF Modal
+  setupAttachPdfModal();
+
+  // Setup Hamburger Menu
+  setupHamburger();
+
   // Setup CSV Bulk Import for Invoices
   setupCsvImport();
+
+  // Setup Item Presets (auto-fill catalog)
+  await setupItemPresets();
 
   // Setup Logout Button
   document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -577,7 +589,7 @@ async function setupInvoiceCreator() {
 
   // Print/Download PDF action
   printPreviewBtn.addEventListener('click', () => {
-    window.print();
+    printInvoiceFromSheet();
   });
 
   // Submit/Save Form
@@ -663,7 +675,7 @@ function addInvoiceRow(desc = '', qty = '', rate = '', gstRate = '5') {
   tr.className = 'item-edit-row';
 
   tr.innerHTML = `
-    <td><input type="text" class="col-desc" placeholder="Product name/stitching service..." value="${desc}" required></td>
+    <td><input type="text" class="col-desc" list="itemPresetsList" placeholder="Product name/stitching service..." value="${desc}" required></td>
     <td><input type="number" class="col-qty" placeholder="1" min="1" value="${qty}" required></td>
     <td><input type="number" step="0.01" class="col-rate" placeholder="0.00" value="${rate}" required></td>
     <td>
@@ -678,6 +690,20 @@ function addInvoiceRow(desc = '', qty = '', rate = '', gstRate = '5') {
   `;
 
   tbody.appendChild(tr);
+
+  // Autofill rate/GST when typed description matches a saved preset name
+  const descInput = tr.querySelector('.col-desc');
+  descInput.addEventListener('input', () => {
+    const match = (window.itemPresetsCache || []).find(
+      p => p.name.trim().toLowerCase() === descInput.value.trim().toLowerCase()
+    );
+    if (match) {
+      tr.querySelector('.col-rate').value = match.rate;
+      tr.querySelector('.col-gst-rate').value = String(match.gstRate);
+      calculateInvoiceTotals();
+    }
+  });
+
   if (window.lucide) window.lucide.createIcons();
   calculateInvoiceTotals();
 }
@@ -736,114 +762,170 @@ window.calculateInvoiceTotals = async function() {
 
 async function renderInvoicePreviewSheet(items, taxableTotal, gstTotal, grandTotal) {
   const sheet = document.getElementById('invoicePrintSheet');
-  
+
   const clientVal = document.getElementById('invClientSelect').value;
   const invNumber = document.getElementById('invNumber').value;
-  const dateVal = document.getElementById('invDate').value;
-  const dueDateVal = document.getElementById('invDueDate').value;
+  const dateVal   = document.getElementById('invDate').value;
 
-  let clientName = 'Select Client';
-  let clientGstin = '---';
+  let clientName    = 'Select Client';
+  let clientGstin   = '---';
   let clientAddress = '---';
+  let clientPhone   = '---';
+  let clientPan     = '---';
 
   if (clientVal) {
     const client = await getById('clients', parseInt(clientVal));
     if (client) {
-      clientName = client.name;
-      clientGstin = client.gstin || 'Unregistered';
-      clientAddress = client.address;
+      clientName    = client.name;
+      clientGstin   = client.gstin   || 'Unregistered';
+      clientPan     = client.pan     || '---';
+      clientPhone   = client.phone   || '---';
+
+      const addressParts = [client.address];
+      const cityLine = [client.city, client.state, client.postalCode].filter(Boolean).join(', ');
+      if (cityLine) addressParts.push(cityLine);
+      if (client.country) addressParts.push(client.country);
+      clientAddress = addressParts.filter(Boolean).join(', ') || '---';
     }
   }
 
-  // Draw invoice template
+  const cgst = gstTotal / 2;
+  const sgst = gstTotal / 2;
+
   let itemsHtml = '';
   if (items.length === 0) {
-    itemsHtml = `<tr><td colspan="6" style="text-align: center; color: #999;">No items added</td></tr>`;
+    itemsHtml = `<tr><td colspan="9" style="text-align:center;color:#999;padding:14px;">No items added</td></tr>`;
   } else {
     items.forEach((it, idx) => {
+      const itemCgst = (it.taxable * it.gstRate / 100) / 2;
+      const itemSgst = itemCgst;
       itemsHtml += `
-        <tr>
-          <td style="border: 1px solid #e2e8f0; padding: 10px; text-align: center;">${idx + 1}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 10px;">${it.desc}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 10px; text-align: right;">${it.qty}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 10px; text-align: right;">${formatCurrencyRaw(it.rate)}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 10px; text-align: center;">${it.gstRate}%</td>
-          <td style="border: 1px solid #e2e8f0; padding: 10px; text-align: right;">${formatCurrencyRaw(it.total)}</td>
-        </tr>
-      `;
+        <tr style="border-bottom:1px solid #e2e8f0;">
+          <td style="padding:10px 8px;text-align:center;border:1px solid #e2e8f0;">${idx + 1}</td>
+          <td style="padding:10px 8px;border:1px solid #e2e8f0;">${it.desc}</td>
+          <td style="padding:10px 8px;text-align:center;border:1px solid #e2e8f0;">${it.gstRate}%</td>
+          <td style="padding:10px 8px;text-align:right;border:1px solid #e2e8f0;">${it.qty}</td>
+          <td style="padding:10px 8px;text-align:right;border:1px solid #e2e8f0;">₹${formatCurrencyRaw(it.rate)}</td>
+          <td style="padding:10px 8px;text-align:right;border:1px solid #e2e8f0;">₹${formatCurrencyRaw(it.taxable)}</td>
+          <td style="padding:10px 8px;text-align:right;border:1px solid #e2e8f0;">₹${formatCurrencyRaw(itemCgst)}</td>
+          <td style="padding:10px 8px;text-align:right;border:1px solid #e2e8f0;">₹${formatCurrencyRaw(itemSgst)}</td>
+          <td style="padding:10px 8px;text-align:right;border:1px solid #e2e8f0;font-weight:600;">₹${formatCurrencyRaw(it.total)}</td>
+        </tr>`;
     });
   }
 
-  sheet.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: start; border-bottom: 2px solid #1a4735; padding-bottom: 20px; margin-bottom: 20px;">
-      <div>
-        <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #1e4735; margin: 0;">WELIZA</h2>
-        <p style="font-size: 0.85rem; margin: 5px 0 0 0; color: #4a5568;">Prayer Dresses & Tailoring Boutique</p>
-        <p style="font-size: 0.85rem; margin: 2px 0 0 0; color: #4a5568;">GSTIN: 32ABCDE1234F1Z5</p>
-        <p style="font-size: 0.85rem; margin: 2px 0 0 0; color: #4a5568;">Kochi, Kerala, India | info@weliza.com</p>
+  const G = '#1e4735';
+  const B = '#e8f5e9';
+
+  // Load user settings (fallback to defaults)
+  const _s = getSettings();
+  const bizName    = _s.BizName    || 'WELIZA';
+  const bizAddr    = _s.BizAddress || 'Kozhikode, Kerala, India — 673620';
+  const bizGstin   = _s.BizGstin  || '32HRJPS4251J1ZF';
+  const bizPan     = _s.BizPan    || 'HRJPS4251J';
+  const bizEmail   = _s.BizEmail  || 'welizadesign@gmail.com';
+  const bizPhone   = _s.BizPhone  || '+91 75929 45893';
+  const bankAccName  = _s.BankAccName  || 'WELIZA DESIGN';
+  const bankAccNum   = _s.BankAccNum   || '8230953768';
+  const bankIfsc     = _s.BankIfsc     || 'IDIB000K213';
+  const bankAccType  = _s.BankAccType  || 'Current';
+  const bankName     = _s.BankName     || 'INDIAN BANK';
+
+  const invoiceHTML = `
+  <div style="width:210mm;min-height:297mm;margin:0 auto;background:#fff;color:#1a1a1a;font-family:'Inter',sans-serif;font-size:12px;line-height:1.5;padding:64px 28px 28px;box-sizing:border-box;position:relative;display:flex;flex-direction:column;">
+
+    <div style="flex:1;">
+      <!-- HEADER -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+        <div>
+          <h2 style="font-size:1.8rem;font-weight:800;color:${G};margin:0;letter-spacing:2px;">${bizName}</h2>
+          <p style="font-size:11px;color:#555;margin:3px 0 0;">${bizAddr}</p>
+          <p style="font-size:11px;color:#555;margin:1px 0 0;">GSTIN: <strong>${bizGstin}</strong></p>
+          <p style="font-size:11px;color:#555;margin:1px 0 0;">PAN: ${bizPan}</p>
+          <p style="font-size:11px;color:#555;margin:1px 0 0;">Email: ${bizEmail}</p>
+          <p style="font-size:11px;color:#555;margin:1px 0 0;">Phone: ${bizPhone}</p>
+        </div>
+        <div style="text-align:right;">
+          <h3 style="font-size:1.4rem;font-weight:700;color:${G};margin:0;text-transform:uppercase;letter-spacing:1px;">Invoice</h3>
+          <p style="font-size:12px;margin:6px 0 2px;"><strong>Invoice No #</strong> ${invNumber}</p>
+          <p style="font-size:12px;margin:2px 0;"><strong>Invoice Date</strong> ${dateVal}</p>
+        </div>
       </div>
-      <div style="text-align: right;">
-        <h3 style="font-size: 1.4rem; color: #1e4735; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Tax Invoice</h3>
-        <p style="font-size: 0.9rem; margin: 5px 0 0 0;">Invoice #: <strong>${invNumber}</strong></p>
-        <p style="font-size: 0.9rem; margin: 2px 0 0 0;">Date: ${dateVal}</p>
-        <p style="font-size: 0.9rem; margin: 2px 0 0 0;">Due Date: ${dueDateVal}</p>
+
+      <!-- BILLED TO -->
+      <div style="background:${B};border:1px solid #c8e6c9;border-radius:6px;padding:14px 16px;margin-bottom:20px;">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;color:#666;margin:0 0 6px;letter-spacing:0.5px;">Billed To</p>
+        <h3 style="font-size:14px;font-weight:700;color:${G};margin:0 0 4px;">${clientName}</h3>
+        <p style="font-size:11px;color:#444;margin:1px 0;">${clientAddress}</p>
+        <p style="font-size:11px;color:#444;margin:1px 0;">GSTIN: <strong>${clientGstin}</strong></p>
+        <p style="font-size:11px;color:#444;margin:1px 0;">PAN: ${clientPan}</p>
+        <p style="font-size:11px;color:#444;margin:1px 0;">Phone: ${clientPhone}</p>
+      </div>
+
+      <!-- SUPPLY INFO -->
+      <div style="display:flex;gap:16px;margin-bottom:16px;font-size:11px;color:#555;">
+        <span><strong>Country of Supply:</strong> India</span>
+        <span><strong>Place of Supply:</strong> Kerala (32)</span>
+      </div>
+
+      <!-- ITEMS TABLE -->
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:11.5px;">
+        <thead>
+          <tr style="background:${G};color:#fff;">
+            <th style="padding:9px 8px;border:1px solid ${G};text-align:center;">Item</th>
+            <th style="padding:9px 8px;border:1px solid ${G};text-align:left;">Description</th>
+            <th style="padding:9px 8px;border:1px solid ${G};text-align:center;">GST Rate</th>
+            <th style="padding:9px 8px;border:1px solid ${G};text-align:right;">Qty</th>
+            <th style="padding:9px 8px;border:1px solid ${G};text-align:right;">Rate</th>
+            <th style="padding:9px 8px;border:1px solid ${G};text-align:right;">Amount</th>
+            <th style="padding:9px 8px;border:1px solid ${G};text-align:right;">CGST</th>
+            <th style="padding:9px 8px;border:1px solid ${G};text-align:right;">SGST</th>
+            <th style="padding:9px 8px;border:1px solid ${G};text-align:right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+
+      <!-- BOTTOM: Bank + Totals -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-top:10px;">
+        <div style="background:${B};border:1px solid #c8e6c9;border-radius:6px;padding:14px 16px;min-width:220px;font-size:11.5px;">
+          <p style="font-size:10px;font-weight:700;text-transform:uppercase;color:#666;margin:0 0 8px;letter-spacing:0.5px;">Bank Details</p>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="color:#666;padding:2px 0;padding-right:12px;">Account Name</td><td style="font-weight:600;">${bankAccName}</td></tr>
+            <tr><td style="color:#666;padding:2px 0;padding-right:12px;">Account Number</td><td style="font-weight:600;">${bankAccNum}</td></tr>
+            <tr><td style="color:#666;padding:2px 0;padding-right:12px;">IFSC</td><td style="font-weight:600;">${bankIfsc}</td></tr>
+            <tr><td style="color:#666;padding:2px 0;padding-right:12px;">Account Type</td><td style="font-weight:600;">${bankAccType}</td></tr>
+            <tr><td style="color:#666;padding:2px 0;padding-right:12px;">Bank</td><td style="font-weight:600;">${bankName}</td></tr>
+          </table>
+        </div>
+        <div style="min-width:220px;font-size:12px;">
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;">
+            <span style="color:#555;">Amount</span><span>₹${formatCurrencyRaw(taxableTotal)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;">
+            <span style="color:#555;">CGST</span><span>₹${formatCurrencyRaw(cgst)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;">
+            <span style="color:#555;">SGST</span><span>₹${formatCurrencyRaw(sgst)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:14px;font-weight:700;color:${G};border-top:2px solid ${G};margin-top:4px;">
+            <span>Total (INR)</span><span>₹${formatCurrencyRaw(grandTotal)}</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px;">
-      <div style="background-color: #f7fafc; padding: 15px; border-radius: 4px; border: 1px solid #edf2f7;">
-        <h4 style="margin: 0 0 8px 0; font-size: 0.85rem; text-transform: uppercase; color: #718096; letter-spacing: 0.5px;">Billed To:</h4>
-        <h3 style="margin: 0 0 5px 0; font-size: 1.15rem; color: #1e4735;">${clientName}</h3>
-        <p style="font-size: 0.85rem; margin: 2px 0 0 0; color: #4a5568;">GSTIN: <strong>${clientGstin}</strong></p>
-        <p style="font-size: 0.85rem; margin: 4px 0 0 0; color: #4a5568; line-height: 1.4;">Address: ${clientAddress}</p>
-      </div>
+    <!-- BOTTOM NOTE — pinned to end of page -->
+    <div style="margin-top:auto;padding-top:24px;border-top:1px solid #e2e8f0;text-align:center;">
+      <p style="font-size:10px;color:#888;margin:0;">This is an electronically generated document, no signature is required.</p>
     </div>
 
-    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-      <thead>
-        <tr style="background-color: #1e4735; color: #ffffff;">
-          <th style="border: 1px solid #1e4735; padding: 10px; text-align: center; font-size: 0.9rem;">SL</th>
-          <th style="border: 1px solid #1e4735; padding: 10px; text-align: left; font-size: 0.9rem;">Description of Service/Goods</th>
-          <th style="border: 1px solid #1e4735; padding: 10px; text-align: right; font-size: 0.9rem;">Qty</th>
-          <th style="border: 1px solid #1e4735; padding: 10px; text-align: right; font-size: 0.9rem;">Rate (₹)</th>
-          <th style="border: 1px solid #1e4735; padding: 10px; text-align: center; font-size: 0.9rem;">GST</th>
-          <th style="border: 1px solid #1e4735; padding: 10px; text-align: right; font-size: 0.9rem;">Total (₹)</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${itemsHtml}
-      </tbody>
-    </table>
+  </div>`;
 
-    <div style="display: flex; justify-content: space-between; align-items: start; margin-top: 30px;">
-      <div style="font-size: 0.8rem; color: #718096; max-width: 320px;">
-        <p style="margin: 0 0 5px 0;"><strong>Terms & Conditions:</strong></p>
-        <p style="margin: 0; line-height: 1.4;">1. Goods/Stitching are delivered as per order specification.</p>
-        <p style="margin: 2px 0 0 0; line-height: 1.4;">2. Payments should be routed directly to Weliza's bank account.</p>
-        <p style="margin: 2px 0 0 0; line-height: 1.4;">3. All disputes subject to Kochi jurisdiction.</p>
-      </div>
-      <div style="min-width: 250px;">
-        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #edf2f7; font-size: 0.9rem;">
-          <span style="color: #718096;">Taxable Total:</span>
-          <span>${formatCurrency(taxableTotal)}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #edf2f7; font-size: 0.9rem;">
-          <span style="color: #718096;">GST Total (Output):</span>
-          <span>${formatCurrency(gstTotal)}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; padding: 10px 0; font-size: 1.15rem; font-weight: bold; color: #1e4735;">
-          <span>Grand Total:</span>
-          <span>${formatCurrency(grandTotal)}</span>
-        </div>
-        
-        <div style="margin-top: 40px; text-align: center; border-top: 1px dashed #cbd5e0; padding-top: 10px;">
-          <p style="font-size: 0.8rem; margin: 0; color: #718096;">For <strong>Weliza Stitching Co.</strong></p>
-          <div style="height: 40px;"></div>
-          <p style="font-size: 0.8rem; font-weight: bold; margin: 0; color: #4a5568;">Authorized Signatory</p>
-        </div>
-      </div>
-    </div>
-  `;
+  sheet.innerHTML = invoiceHTML;
+
+  // Store HTML for PDF download
+  sheet._invoiceHTML = invoiceHTML;
 }
 
 async function resetInvoiceForm() {
@@ -892,6 +974,7 @@ async function loadInvoicesList() {
 
   filtered.forEach(inv => {
     const tr = document.createElement('tr');
+    const hasPdf = inv.attachedPdfData && inv.attachedPdfData.length > 0;
     tr.innerHTML = `
       <td><strong>${inv.invoiceNumber}</strong></td>
       <td>${inv.clientName}</td>
@@ -904,6 +987,18 @@ async function loadInvoicesList() {
           <option value="Paid" ${inv.status === 'Paid' ? 'selected' : ''}>Paid</option>
           <option value="Pending" ${inv.status === 'Pending' ? 'selected' : ''}>Pending</option>
         </select>
+      </td>
+      <td style="text-align: center;">
+        ${hasPdf
+          ? `<span style="display:inline-flex;align-items:center;gap:4px;">
+               <button class="btn btn-action" onclick="viewInvoicePdf(${inv.id})" title="View PDF" style="color:#1e4735;"><i data-lucide="eye"></i></button>
+               <button class="btn btn-action btn-action-del" onclick="removeInvoicePdf(${inv.id})" title="Remove PDF" style="font-size:0.7rem;padding:3px 6px;"><i data-lucide="x"></i></button>
+             </span>`
+          : `<label class="btn btn-action" title="Upload PDF" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+               <i data-lucide="upload"></i>
+               <input type="file" accept="application/pdf" style="display:none;" onchange="attachInvoicePdf(${inv.id}, this)">
+             </label>`
+        }
       </td>
       <td style="text-align: center;">
         <button class="btn btn-action" onclick="printInvoiceFromDb(${inv.id})" title="Print Invoice"><i data-lucide="printer"></i></button>
@@ -936,6 +1031,43 @@ window.deleteInvoiceFromDb = async function(id) {
   }
 };
 
+// Attach a PDF file to an invoice
+window.attachInvoicePdf = async function(id, inputEl) {
+  const file = inputEl.files[0];
+  if (!file) return;
+  if (file.type !== 'application/pdf') { alert('Please select a PDF file.'); return; }
+  if (file.size > 5 * 1024 * 1024) { alert('PDF must be under 5MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const inv = await getById('invoices', id);
+    if (!inv) return;
+    inv.attachedPdfData = e.target.result;
+    inv.attachedPdfName = file.name;
+    await update('invoices', inv);
+    renderInvoicesList();
+  };
+  reader.readAsDataURL(file);
+};
+
+// View attached PDF in new tab
+window.viewInvoicePdf = async function(id) {
+  const inv = await getById('invoices', id);
+  if (!inv || !inv.attachedPdfData) return;
+  const w = window.open();
+  w.document.write(`<iframe src="${inv.attachedPdfData}" style="width:100%;height:100%;border:none;" title="${inv.attachedPdfName || 'Invoice PDF'}"></iframe>`);
+};
+
+// Remove attached PDF from invoice
+window.removeInvoicePdf = async function(id) {
+  if (!confirm('Remove the attached PDF from this invoice?')) return;
+  const inv = await getById('invoices', id);
+  if (!inv) return;
+  inv.attachedPdfData = '';
+  inv.attachedPdfName = '';
+  await update('invoices', inv);
+  renderInvoicesList();
+};
+
 // Print template dynamically populated from saved records
 window.printInvoiceFromDb = async function(id) {
   const inv = await getById('invoices', id);
@@ -958,11 +1090,8 @@ window.printInvoiceFromDb = async function(id) {
     `;
   });
 
-  // Temporarily switch print view details
   await renderInvoicePreviewSheet(inv.items, inv.taxableTotal, inv.gstTotal, inv.grandTotal);
-  
-  // Trigger system print
-  window.print();
+  setTimeout(() => { printInvoiceFromSheet(); }, 300);
 };
 
 
@@ -1136,9 +1265,14 @@ function setupClientCRM() {
     const hiddenId = document.getElementById('clientIdHidden').value;
     const name = document.getElementById('cliName').value.trim();
     const gstin = document.getElementById('cliGstin').value.trim();
+    const pan = document.getElementById('cliPan').value.trim();
     const phone = document.getElementById('cliPhone').value.trim();
     const email = document.getElementById('cliEmail').value.trim();
     const address = document.getElementById('cliAddress').value.trim();
+    const city = document.getElementById('cliCity').value.trim();
+    const state = document.getElementById('cliState').value.trim();
+    const postalCode = document.getElementById('cliPostalCode').value.trim();
+    const country = document.getElementById('cliCountry').value.trim();
 
     if (hiddenId) {
       // Edit mode
@@ -1146,9 +1280,14 @@ function setupClientCRM() {
       if (client) {
         client.name = name;
         client.gstin = gstin;
+        client.pan = pan;
         client.phone = phone;
         client.email = email;
         client.address = address;
+        client.city = city;
+        client.state = state;
+        client.postalCode = postalCode;
+        client.country = country;
 
         await update('clients', client);
         alert('Client updated successfully');
@@ -1156,7 +1295,7 @@ function setupClientCRM() {
     } else {
       // Add mode
       await add('clients', {
-        name, gstin, phone, email, address, createdAt: new Date().toISOString()
+        name, gstin, pan, phone, email, address, city, state, postalCode, country, createdAt: new Date().toISOString()
       });
       alert('Client profile added successfully');
     }
@@ -1207,7 +1346,10 @@ async function loadClientsCRM() {
       <td><strong>${c.name}</strong></td>
       <td>${c.gstin || '<span style="color:#777; font-size:0.8rem;">Unregistered</span>'}</td>
       <td>${c.phone}</td>
-      <td style="font-size:0.85rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${c.address}</td>
+      <td style="font-size:0.85rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        ${c.address}
+        ${(c.city || c.state || c.postalCode) ? `<br><span style="font-size:0.78rem;color:#999;">${[c.city, c.state, c.postalCode].filter(Boolean).join(', ')}${c.country ? ' · ' + c.country : ''}</span>` : ''}
+      </td>
       <td>
         <span style="display:block;">Billing: <strong>${formatCurrency(volume)}</strong></span>
         ${unpaid > 0 ? `<span style="font-size:0.8rem; color:#f482c7;">Pending: ${formatCurrency(unpaid)}</span>` : '<span style="font-size:0.8rem; color:#2ec4b6;">Paid clear</span>'}
@@ -1230,9 +1372,14 @@ window.editClientProfile = async function(id) {
     document.getElementById('clientIdHidden').value = c.id;
     document.getElementById('cliName').value = c.name;
     document.getElementById('cliGstin').value = c.gstin || '';
+    document.getElementById('cliPan').value = c.pan || '';
     document.getElementById('cliPhone').value = c.phone;
     document.getElementById('cliEmail').value = c.email || '';
     document.getElementById('cliAddress').value = c.address;
+    document.getElementById('cliCity').value = c.city || '';
+    document.getElementById('cliState').value = c.state || '';
+    document.getElementById('cliPostalCode').value = c.postalCode || '';
+    document.getElementById('cliCountry').value = c.country || 'India';
 
     document.getElementById('crmFormHeading').textContent = 'Edit Client Profile';
     document.getElementById('btnClientSubmit').querySelector('span').textContent = 'Update Profile';
@@ -1425,6 +1572,137 @@ async function importInvoicesFromCsv(csvText) {
 }
 
 // 9. CURRENCY FORMATTING UTILITIES
+function printInvoiceFromSheet() {
+  const sheet = document.getElementById('invoicePrintSheet');
+  const html = sheet._invoiceHTML || sheet.innerHTML;
+  if (!html || html.includes('Fill in the form')) {
+    alert('Please fill in the invoice details first.');
+    return;
+  }
+  const win = window.open('', '_blank', 'width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>Weliza Invoice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      * {
+        margin:0; padding:0; box-sizing:border-box;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      html, body { background:#fff; font-family:'Inter',sans-serif; }
+      @page { size: A4 portrait; margin: 0; }
+      @media print {
+        body { margin:0; }
+      }
+    </style>
+  </head><body>${html}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 600);
+}
+
+// 10. ITEM PRESETS CATALOG (auto-fill on description match)
+window.itemPresetsCache = [];
+
+const DEFAULT_ITEM_PRESETS = [
+  { name: 'Prayer Dress',        rate: 800,  gstRate: 5 },
+  { name: 'Abaya',               rate: 1500, gstRate: 5 },
+  { name: 'Hijab',               rate: 300,  gstRate: 5 },
+  { name: 'Burqa',               rate: 1800, gstRate: 5 },
+  { name: 'Khimar',              rate: 900,  gstRate: 5 },
+  { name: 'Stitching Charge',    rate: 500,  gstRate: 12 },
+  { name: 'Alteration Charge',   rate: 200,  gstRate: 12 }
+];
+
+async function setupItemPresets() {
+  // Seed defaults once if the catalog is empty
+  const existing = await getAll('itemPresets');
+  if (existing.length === 0) {
+    for (const preset of DEFAULT_ITEM_PRESETS) {
+      await add('itemPresets', preset);
+    }
+  }
+
+  await refreshItemPresetsCache();
+
+  const modal = document.getElementById('itemPresetsModal');
+  const openBtn = document.getElementById('btnManagePresets');
+  const closeBtn = document.getElementById('presetsModalClose');
+  const addForm = document.getElementById('presetAddForm');
+
+  if (openBtn) {
+    openBtn.addEventListener('click', () => {
+      modal.style.display = 'flex';
+      renderPresetsModalList();
+    });
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+  }
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+  }
+  if (addForm) {
+    addForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('presetName').value.trim();
+      const rate = parseFloat(document.getElementById('presetRate').value) || 0;
+      const gstRate = parseFloat(document.getElementById('presetGstRate').value) || 0;
+      if (!name) return;
+
+      await add('itemPresets', { name, rate, gstRate });
+      addForm.reset();
+      document.getElementById('presetGstRate').value = '5';
+      await refreshItemPresetsCache();
+      renderPresetsModalList();
+    });
+  }
+}
+
+async function refreshItemPresetsCache() {
+  window.itemPresetsCache = await getAll('itemPresets');
+  const datalist = document.getElementById('itemPresetsList');
+  if (datalist) {
+    datalist.innerHTML = window.itemPresetsCache
+      .map(p => `<option value="${p.name}"></option>`)
+      .join('');
+  }
+}
+
+async function renderPresetsModalList() {
+  const container = document.getElementById('presetsListContainer');
+  if (!container) return;
+
+  if (window.itemPresetsCache.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:#888;font-size:0.85rem;">No presets yet.</p>';
+    return;
+  }
+
+  container.innerHTML = window.itemPresetsCache.map(p => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <div>
+        <strong style="font-size:0.9rem;">${p.name}</strong>
+        <div style="font-size:0.78rem;color:#999;">₹${formatCurrencyRaw(p.rate)} &middot; GST ${p.gstRate}%</div>
+      </div>
+      <button type="button" class="btn btn-action btn-action-del" onclick="deleteItemPreset(${p.id})" title="Delete">
+        <i data-lucide="trash-2"></i>
+      </button>
+    </div>
+  `).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+window.deleteItemPreset = async function(id) {
+  await remove('itemPresets', id);
+  await refreshItemPresetsCache();
+  renderPresetsModalList();
+};
+
 function formatCurrency(value) {
   return '₹' + parseFloat(value).toLocaleString('en-IN', {
     minimumFractionDigits: 2,
@@ -1436,5 +1714,200 @@ function formatCurrencyRaw(value) {
   return parseFloat(value).toLocaleString('en-IN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
+  });
+}
+
+// ─── SETTINGS MODULE ───────────────────────────────────────────
+const SETTINGS_KEY = 'weliza_settings';
+
+function getSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveSettings(patch) {
+  const current = getSettings();
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...current, ...patch }));
+}
+
+function loadSettingsForm() {
+  const s = getSettings();
+  // Billed From
+  const fields = ['BizName','BizAddress','BizGstin','BizPan','BizEmail','BizPhone',
+                  'BankAccName','BankAccNum','BankIfsc','BankAccType','BankName'];
+  fields.forEach(key => {
+    const el = document.getElementById('set' + key);
+    if (el && s[key] !== undefined) el.value = s[key];
+  });
+}
+
+function setupSettings() {
+  loadSettingsForm();
+
+  document.getElementById('billedFromForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveSettings({
+      BizName: document.getElementById('setBizName').value.trim(),
+      BizAddress: document.getElementById('setBizAddress').value.trim(),
+      BizGstin: document.getElementById('setBizGstin').value.trim(),
+      BizPan: document.getElementById('setBizPan').value.trim(),
+      BizEmail: document.getElementById('setBizEmail').value.trim(),
+      BizPhone: document.getElementById('setBizPhone').value.trim(),
+    });
+    showToast('Business details saved!');
+  });
+
+  document.getElementById('bankDetailsForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveSettings({
+      BankAccName: document.getElementById('setBankAccName').value.trim(),
+      BankAccNum: document.getElementById('setBankAccNum').value.trim(),
+      BankIfsc: document.getElementById('setBankIfsc').value.trim(),
+      BankAccType: document.getElementById('setBankAccType').value.trim(),
+      BankName: document.getElementById('setBankName').value.trim(),
+    });
+    showToast('Bank details saved!');
+  });
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('welizaToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'welizaToast';
+    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1e4735;color:#fff;padding:12px 20px;border-radius:8px;font-size:0.9rem;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);transition:opacity 0.3s;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+}
+
+// ─── ATTACH PDF MODAL ──────────────────────────────────────────
+function setupAttachPdfModal() {
+  const openBtn   = document.getElementById('btnAttachPdfBtn');
+  const modal     = document.getElementById('attachPdfModal');
+  const closeBtn  = document.getElementById('attachPdfModalClose');
+  const select    = document.getElementById('attachPdfInvoiceSelect');
+  const fileInput = document.getElementById('attachPdfFileInput');
+  const fileLabel = document.getElementById('attachPdfFileName');
+  const saveBtn   = document.getElementById('attachPdfSaveBtn');
+  const errDiv    = document.getElementById('attachPdfError');
+
+  if (!openBtn || !modal) return;
+
+  let pendingPdfData = '';
+  let pendingPdfName = '';
+
+  async function openModal() {
+    // Populate invoice dropdown
+    const invoices = await getAll('invoices');
+    invoices.sort((a, b) => new Date(b.date) - new Date(a.date));
+    select.innerHTML = invoices.length
+      ? `<option value="">— Select an invoice —</option>` +
+        invoices.map(inv => {
+          const hasPdf = inv.attachedPdfData ? ' 📎' : '';
+          return `<option value="${inv.id}">${inv.invoiceNumber} · ${inv.clientName} · ${inv.date}${hasPdf}</option>`;
+        }).join('')
+      : `<option value="">No invoices found</option>`;
+
+    // Reset state
+    pendingPdfData = '';
+    pendingPdfName = '';
+    fileLabel.textContent = 'Click to choose a PDF…';
+    fileInput.value = '';
+    errDiv.style.display = 'none';
+
+    modal.style.display = 'flex';
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  openBtn.addEventListener('click', openModal);
+
+  closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    errDiv.style.display = 'none';
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      errDiv.textContent = 'Only PDF files are accepted.';
+      errDiv.style.display = 'block';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      errDiv.textContent = 'File must be under 5 MB.';
+      errDiv.style.display = 'block';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      pendingPdfData = ev.target.result;
+      pendingPdfName = file.name;
+      fileLabel.textContent = '✓ ' + file.name;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    errDiv.style.display = 'none';
+    const invId = parseInt(select.value);
+    if (!invId) { errDiv.textContent = 'Please select an invoice.'; errDiv.style.display = 'block'; return; }
+    if (!pendingPdfData) { errDiv.textContent = 'Please choose a PDF file.'; errDiv.style.display = 'block'; return; }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    const inv = await getById('invoices', invId);
+    if (!inv) { errDiv.textContent = 'Invoice not found.'; errDiv.style.display = 'block'; saveBtn.disabled = false; saveBtn.innerHTML = '<i data-lucide="paperclip"></i> Attach PDF'; return; }
+
+    inv.attachedPdfData = pendingPdfData;
+    inv.attachedPdfName = pendingPdfName;
+    await update('invoices', inv);
+
+    modal.style.display = 'none';
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<i data-lucide="paperclip"></i> Attach PDF';
+    showToast('PDF attached to ' + inv.invoiceNumber);
+    renderInvoicesList();
+  });
+}
+
+// ─── HAMBURGER / MOBILE SIDEBAR ────────────────────────────────
+function setupHamburger() {
+  const hamburgerBtn   = document.getElementById('hamburgerBtn');
+  const sidebar        = document.querySelector('.sidebar');
+  const overlay        = document.getElementById('sidebarOverlay');
+
+  if (!hamburgerBtn || !sidebar || !overlay) return;
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  hamburgerBtn.addEventListener('click', openSidebar);
+  overlay.addEventListener('click', closeSidebar);
+
+  // Close sidebar when a nav link is tapped on mobile
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 680) closeSidebar();
+    });
+  });
+
+  // Close on resize to desktop
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 680) closeSidebar();
   });
 }
