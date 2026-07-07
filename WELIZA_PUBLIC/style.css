@@ -277,9 +277,9 @@ button, .btn {
 }
 
 .hero-mark {
-  height: 56px;
+  height: 52px;
   width: auto;
-  margin-bottom: 68px;
+  margin-bottom: 10px;
   opacity: 0.95;
   animation: float 7s ease-in-out infinite;
 }
