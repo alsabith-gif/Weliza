@@ -268,7 +268,7 @@ button, .btn {
   background: var(--emerald);
   position: relative;
   overflow: hidden;
-  margin-top: 140px;
+  margin-top:;
 }
 
 .hero-content {
