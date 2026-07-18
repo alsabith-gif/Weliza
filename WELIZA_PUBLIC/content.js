@@ -100,7 +100,7 @@ const SITE_CONTENT = {
       category: "prayer",
       desc: "Pure cotton. Pure white.Soft against the skin, light through long hours of wear.Made for comfort that stays with you, prayer after prayer.",
       spec: "100% Organic Cotton| All Size",
-      image: "assets/catalog/White cotton prayer dresss.png"
+      image: "assets/catalog/Crepe prayer dress.png"
     },
     {
       id: 2,
