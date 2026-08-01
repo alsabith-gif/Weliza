@@ -218,9 +218,9 @@ const SITE_CONTENT = {
   // ------------------------------------------------------------
   footer: {
     socials: [
-      { platform: "Instagram", url: "https://instagram.com/weliza" },
-      { platform: "Facebook", url: "https://facebook.com/weliza" },
-      { platform: "YouTube", url: "https://youtube.com/@weliza" },
+      { platform: "Instagram", url: "https://instagram.com/weliza.in" },
+      { platform: "Facebook", url: "https://facebook.com/weliza.in" },
+      { platform: "YouTube", url: "https://youtube.com/@weliza.in" },
       { platform: "WhatsApp", url: "https://wa.me/917592945893" },
       { platform: "LinkedIn", url: "https://linkedin.com/company/weliza" }
     ],
