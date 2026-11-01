@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop | Weliza</title>
+  <meta name="description" content="Shop Weliza prayer dresses online.">
+  <link rel="icon" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="shop.css">
+</head>
+<body class="shop-body">
+  <header class="sh-head">
+    <a href="index.html"><img src="assets/logo/logo_word_emerald.png" alt="Weliza" class="sh-logo"></a>
+    <div class="sh-nav"><a href="index.html">Home</a><button id="cartBtn" class="sh-cartbtn" type="button">Cart <span id="cartCount">0</span></button></div>
+  </header>
+  <main class="sh-main">
+    <h1 class="sh-title">Shop</h1>
+    <div id="chips" class="sh-chips"></div>
+    <div id="grid" class="sh-grid"><p class="sh-msg">Loading…</p></div>
+  </main>
+
+  <div id="pm" class="sh-ov" hidden><div class="sh-modal"><button class="sh-x" id="pmX" type="button" aria-label="Close">✕</button><div id="pmBody"></div></div></div>
+  <aside id="cart" class="sh-drawer" hidden>
+    <div class="sh-drawer-in">
+      <div class="sh-drawer-head"><strong>Your cart</strong><button class="sh-x2" id="cartX" type="button" aria-label="Close">✕</button></div>
+      <div id="cartBody"></div>
+    </div>
+  </aside>
+  <div id="toast" class="sh-toast"></div>
+  <script src="shop.js"></script>
+</body>
+</html>
