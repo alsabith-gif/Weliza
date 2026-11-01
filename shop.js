@@ -5,7 +5,7 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
-  let products = [], cats = [], cat = 'all', cart = [];
+  let products = [], cats = [], cat = 'all', cart = [], q = '', sort = 'new';
   try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { cart = []; }
 
   const vs = p => (p.store_product_variants || []).filter(v => v.is_active);
@@ -40,14 +40,25 @@
     $('chips').innerHTML = used.length < 2 ? '' :
       [{ id: 'all', name: 'All' }, ...used].map(c => `<button class="sh-chip ${cat === c.id ? 'on' : ''}" data-c="${c.id}" type="button">${esc(c.name)}</button>`).join('');
   }
+  const catName = id => (cats.find(c => c.id === id) || {}).name || '';
+  function view() {
+    const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    const l = products.filter(p => (cat === 'all' || p.category_id === cat) &&
+      terms.every(t => (p.name + ' ' + (p.description || '') + ' ' + catName(p.category_id)).toLowerCase().includes(t)));
+    if (sort === 'low') l.sort((a, b) => a.price - b.price);
+    if (sort === 'high') l.sort((a, b) => b.price - a.price);
+    return l;
+  }
   function drawGrid() {
-    const list = products.filter(p => cat === 'all' || p.category_id === cat);
-    $('grid').innerHTML = list.length ? list.map(p => `<div class="sh-card" data-p="${p.id}">
+    const list = view();
+    $('count').textContent = products.length ? list.length + (list.length === 1 ? ' product' : ' products') : '';
+    $('grid').innerHTML = list.length ? list.map(p => { const one = vs(p).length === 1 && !soldOut(p); return `<div class="sh-card" data-p="${p.id}">
       ${soldOut(p) ? '<span class="sh-badge">Sold out</span>' : ''}
       ${img0(p) ? `<img src="${esc(img0(p))}" alt="${esc(p.name)}" loading="lazy">` : '<div class="sh-ph"></div>'}
       <div class="sh-card-b"><p class="sh-name">${esc(p.name)}</p>
-      <span class="sh-price">${money(p.price)}</span>${p.compare_price > p.price ? `<span class="sh-old">${money(p.compare_price)}</span>` : ''}</div></div>`).join('')
-      : '<p class="sh-msg">Our dresses are coming soon. Please check back shortly.</p>';
+      <span class="sh-price">${money(p.price)}</span>${p.compare_price > p.price ? `<span class="sh-old">${money(p.compare_price)}</span>` : ''}
+      ${one ? `<button class="sh-quick" type="button" data-qa="${p.id}">Add to cart</button>` : ''}</div></div>`; }).join('')
+      : (products.length ? `<p class="sh-msg">No dresses found${q ? ' for “' + esc(q) + '”' : ''}. Try another word.</p>` : '<p class="sh-msg">Our dresses are coming soon. Please check back shortly.</p>');
   }
 
   function openProduct(p) {
@@ -106,7 +117,14 @@
   }
 
   $('chips').onclick = e => { if (e.target.dataset.c) { cat = e.target.dataset.c; drawChips(); drawGrid(); } };
-  $('grid').onclick = e => { const c = e.target.closest('[data-p]'); if (c) openProduct(products.find(p => p.id === c.dataset.p)); };
+  $('grid').onclick = e => {
+    const qa = e.target.dataset.qa;
+    if (qa) { const p = products.find(x => x.id === qa); addToCart(p, vs(p)[0], 1); toast('Added to cart'); return; }
+    const c = e.target.closest('[data-p]'); if (c) openProduct(products.find(p => p.id === c.dataset.p));
+  };
+  $('q').oninput = e => { q = e.target.value.trim(); drawGrid(); };
+  $('searchForm').onsubmit = e => { e.preventDefault(); $('grid').scrollIntoView({ behavior: 'smooth' }); };
+  $('sort').onchange = e => { sort = e.target.value; drawGrid(); };
   $('pmX').onclick = closeProduct;
   $('pm').onclick = e => { if (e.target === $('pm')) closeProduct(); };
   $('cartBtn').onclick = openCart;

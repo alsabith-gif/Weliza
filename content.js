@@ -61,7 +61,7 @@ const SITE_CONTENT = {
   nav: [
     { label: "Home", href: "#home" },
     { label: "Catalog", href: "#catalog" },
-    { label: "Shop", href: "shop.html" },
+    { label: "Shop", href: "index.html" },
     { label: "About", href: "#about" },
     { label: "Contact", href: "#contact" }
   ],
@@ -228,7 +228,7 @@ const SITE_CONTENT = {
     navigationLinks: [
       { label: "Home", href: "#home" },
       { label: "Catalog", href: "#catalog" },
-    { label: "Shop", href: "shop.html" },
+    { label: "Shop", href: "index.html" },
       { label: "About", href: "#about" },
       { label: "Contact", href: "#contact" }
     ],
