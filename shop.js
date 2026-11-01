@@ -113,7 +113,7 @@
       <div><strong>${money(i.price * i.qty)}</strong><br><button class="sh-rm" type="button" data-r="${n}">Remove</button></div></div>`).join('') +
       `<div class="sh-sub"><span>Subtotal</span><span>${money(sub)}</span></div>
        <p class="sh-note">Shipping and the final total are shown at checkout.</p>
-       <button class="sh-btn" type="button" disabled>Checkout opens in the next update</button>`;
+       <a class="sh-btn" href="checkout.html" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box">Checkout</a>`;
   }
 
   $('chips').onclick = e => { if (e.target.dataset.c) { cat = e.target.dataset.c; drawChips(); drawGrid(); } };
