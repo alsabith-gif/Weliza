@@ -242,6 +242,9 @@ const SITE_CONTENT = {
     copyrightText: "Weliza Stitching Company. All rights reserved.",
     bottomLinks: [
       { label: "Privacy Policy", href: "/privacy-policy.html" },
+      { label: "Return Policy", href: "/return-policy.html" },
+      { label: "Shipping Policy", href: "/shipping-policy.html" },
+      { label: "Contact Us", href: "/contact.html" },
       { label: "Terms of Service", href: "/terms-of-service.html" }
     ]
   }
