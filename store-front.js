@@ -163,5 +163,6 @@
       if (products.length) buildStore();   // no products yet: the original showcase catalog stays
     } catch (e) { /* keep the original showcase catalog */ }
   }
+  window.addEventListener('weliza-cart', () => { try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { cart = []; } saveCart(); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
