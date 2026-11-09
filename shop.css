@@ -93,3 +93,18 @@
 .tk-step span{display:block;width:16px;height:16px;border-radius:50%;background:#cfd9d3;margin:0 auto 6px}
 .tk-step.on{color:var(--emerald);font-weight:600}
 .tk-step.on span{background:var(--emerald)}
+/* Single-page store inside the home page */
+.navbar .nav-links{margin-left:auto}
+.st-cart{position:relative;background:none;border:0;cursor:pointer;color:var(--emerald);padding:6px;margin-left:22px;display:flex}
+.st-cart svg{width:26px;height:26px}
+.st-cart .st-count{position:absolute;top:-3px;right:-6px;background:var(--gold);color:#fff;border-radius:999px;font-size:.7rem;min-width:18px;height:18px;line-height:18px;text-align:center;font-weight:600;padding:0 4px;box-sizing:border-box}
+@media(max-width:768px){.st-cart{margin-left:auto;margin-right:14px}}
+.sh-ov{z-index:1500}.sh-drawer{z-index:1600}.sh-toast{z-index:1700}
+.st-tools{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:820px;margin:0 auto 20px}
+.st-tools input{flex:1;min-width:220px;border:2px solid var(--emerald);border-radius:999px;padding:11px 20px;font:inherit;outline:none;background:#fff}
+.st-tools select{border:1px solid var(--emerald);border-radius:999px;padding:10px 16px;font:inherit;background:#fff;color:var(--emerald)}
+.st-chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+.st-count-txt{text-align:center;color:var(--text-secondary);font-size:.9rem;margin:0 0 20px}
+.st-sub{text-align:center;margin:56px 0 6px;font-family:var(--font-heading);color:var(--emerald-deep);font-size:1.8rem}
+.st-subp{text-align:center;color:var(--text-secondary);margin:0 0 24px}
+#stGrid .catalog-card{cursor:pointer}

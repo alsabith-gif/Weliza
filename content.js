@@ -26,7 +26,7 @@ const SITE_CONTENT = {
   // ------------------------------------------------------------
   business: {
     name: "Weliza",
-    tagline: "Prayer wear & Custome stitching. GST-compliant, wedding-center trusted.",
+    tagline: "Prayer wear & Custom stitching. GST-compliant, wedding-center trusted.",
     phoneDisplay: "+91 75929 45893",
     phoneWhatsApp: "917592945893",   // no + or spaces, used for wa.me links
     email: "info@weliza.in",
@@ -61,9 +61,9 @@ const SITE_CONTENT = {
   nav: [
     { label: "Home", href: "#home" },
     { label: "Catalog", href: "#catalog" },
-    { label: "Shop", href: "index.html" },
     { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" }
+    { label: "Contact", href: "#contact" },
+    { label: "Track Order", href: "track.html" }
   ],
 
   // ------------------------------------------------------------
@@ -71,7 +71,7 @@ const SITE_CONTENT = {
   // ------------------------------------------------------------
   hero: {
     subtitle: "Stitched to Order",
-    titleLine1: "Prayer Wear & Custome Stitching,",
+    titleLine1: "Prayer Wear & Custom Stitching,",
     titleHighlight: "Perfected",
     description: "GST-registered. Trusted by leading wedding centers.",
     primaryButtonText: "Explore Catalog",
@@ -228,7 +228,7 @@ const SITE_CONTENT = {
     navigationLinks: [
       { label: "Home", href: "#home" },
       { label: "Catalog", href: "#catalog" },
-    { label: "Shop", href: "index.html" },
+    { label: "Shop", href: "#catalog" },
       { label: "About", href: "#about" },
       { label: "Contact", href: "#contact" }
     ],
