@@ -108,24 +108,51 @@
 .st-sub{text-align:center;margin:56px 0 6px;font-family:var(--font-heading);color:var(--emerald-deep);font-size:1.8rem}
 .st-subp{text-align:center;color:var(--text-secondary);margin:0 0 24px}
 #stGrid .catalog-card{cursor:pointer}
-/* Trust strip under the hero */
-.trust-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#fff;border-bottom:1px solid var(--bg-secondary);padding:18px 5vw}
-.trust-item{display:flex;align-items:center;gap:12px;justify-content:center}
-.trust-ic{font-size:1.7rem;line-height:1}
-.trust-item strong{display:block;color:var(--emerald-deep);font-size:.95rem}
-.trust-item small{color:var(--text-secondary);font-size:.8rem}
-@media(max-width:900px){.trust-strip{grid-template-columns:repeat(2,1fr);gap:14px 8px}.trust-item{justify-content:flex-start}}
-/* Phone polish */
-@media(max-width:600px){
-  .trust-ic{font-size:1.4rem}.trust-item strong{font-size:.85rem}.trust-item small{font-size:.72rem}
-  #stGrid{grid-template-columns:repeat(2,1fr);gap:12px}
-  #stGrid .catalog-desc{display:none}
-  #stGrid .catalog-title{font-size:1rem}
-  #stGrid .catalog-footer{flex-direction:column;align-items:stretch;gap:8px}
-  #stGrid .catalog-action-btn{width:100%;padding:10px 8px;justify-content:center}
-  .st-tools select{width:100%}
-  .sh-ov{padding:8px}.sh-modal{padding:14px}
-  .sh-item{grid-template-columns:56px 1fr auto}.sh-item img{width:56px;height:56px}
-}
-@media(hover:none){#stGrid .catalog-overlay{display:none}}
-.ck-card input,.ck-card select,.ck-card textarea,.st-tools input,.ck-coupon input{font-size:16px}
+/* Minimal perk bar under the hero (the partners strip keeps its original look) */
+.perk-bar{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 26px;background:var(--bg-secondary);padding:9px 5vw;font-size:.78rem;color:var(--emerald-deep);border-bottom:1px solid rgba(0,0,0,.05)}
+.perk-bar span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.perk-bar svg{width:13px;height:13px;color:var(--gold)}
+@media(max-width:600px){.perk-bar{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:.7rem;padding:8px 5vw}.perk-bar span{white-space:normal}}
+/* Product card built to sell */
+.pc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+@media(max-width:1000px){.pc-grid{grid-template-columns:repeat(3,1fr);gap:18px}}
+@media(max-width:700px){.pc-grid{grid-template-columns:repeat(2,1fr);gap:12px}}
+.pc{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(20,57,42,.08);display:flex;flex-direction:column;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.pc:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(20,57,42,.15)}
+.pc-img{position:relative;aspect-ratio:4/5;background:var(--bg-secondary);overflow:hidden}
+.pc-img img{width:100%;height:100%;object-fit:cover;display:block}
+.pc-off-badge{position:absolute;top:10px;left:10px;background:#d62f2f;color:#fff;font-size:.75rem;font-weight:700;border-radius:6px;padding:4px 8px}
+.pc-soldout{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7);color:var(--emerald-deep);font-weight:700;letter-spacing:.1em}
+.pc-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:7px;flex:1}
+.pc-name{font-family:var(--font-body);font-size:.98rem;font-weight:500;margin:0;color:var(--text-primary);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pc-desc{margin:0;color:var(--text-secondary);font-size:.85rem;line-height:1.4}
+.pc-sizes{display:flex;gap:5px;flex-wrap:wrap}
+.pc-sizes span{border:1px solid #d7ded9;border-radius:5px;padding:1px 7px;font-size:.72rem;color:var(--text-secondary)}
+.pc-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pc-price strong{font-size:1.5rem;font-weight:700;color:var(--emerald-deep);line-height:1.1}
+.pc-price s{color:var(--text-secondary);font-size:.9rem}
+.pc-low{margin:0;color:#d62f2f;font-size:.78rem;font-weight:600}
+.pc-btn{margin-top:auto;border:0;border-radius:10px;background:var(--emerald);color:#fff;font:inherit;font-weight:600;padding:11px 10px;cursor:pointer;width:100%}
+.pc-btn:hover{background:var(--emerald-deep)}
+.pc-btn:disabled{background:#9aa8a0;cursor:not-allowed}
+@media(max-width:700px){.pc-body{padding:10px 10px 12px;gap:6px}.pc-name{font-size:.88rem}.pc-price strong{font-size:1.3rem}.pc-btn{padding:10px 6px;font-size:.85rem}.pc-img{aspect-ratio:3/4}}
+.st-more{text-align:center;margin-top:30px}
+/* All Products view */
+#stAll{position:fixed;inset:0;z-index:1400;background:var(--bg-primary);overflow:auto}
+#stAll[hidden]{display:none}
+.al-head{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;padding:12px 5vw;box-shadow:var(--shadow-sm)}
+.al-back{border:0;background:none;color:var(--emerald);font:inherit;font-weight:600;cursor:pointer;padding:6px 0}
+.al-head .st-cart{margin:0}
+.al-tools{max-width:1180px;margin:0 auto;padding:14px 5vw 0}
+.al-tools #stQ{width:100%;box-sizing:border-box;border:2px solid var(--emerald);border-radius:999px;padding:12px 20px;font:inherit;font-size:16px;outline:none;background:#fff}
+.al-chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:none}
+.al-chips::-webkit-scrollbar{display:none}
+.al-chip{flex:0 0 auto;border:1px solid var(--emerald);background:#fff;color:var(--emerald);border-radius:999px;padding:7px 16px;font:inherit;font-size:.85rem;cursor:pointer;white-space:nowrap}
+.al-chip.on{background:var(--emerald);color:#fff}
+.al-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.al-row select{flex:1;min-width:130px;border:1px solid #cfd9d3;border-radius:10px;padding:9px 10px;font:inherit;font-size:.9rem;background:#fff;color:var(--text-primary)}
+.al-chk{display:flex;gap:6px;align-items:center;font-size:.9rem;color:var(--text-primary);white-space:nowrap}
+.al-wrap{max-width:1180px;margin:0 auto;padding:0 5vw 50px}
+@media(max-width:600px){.al-row{display:grid;grid-template-columns:1fr 1fr}.al-row select{min-width:0}.al-chk{grid-column:1/-1}}
+.ck-card input,.ck-card select,.ck-card textarea,.ck-coupon input{font-size:16px}
+.sh-ov{padding:14px}@media(max-width:600px){.sh-ov{padding:8px}.sh-modal{padding:14px}.sh-item{grid-template-columns:56px 1fr auto}.sh-item img{width:56px;height:56px}}

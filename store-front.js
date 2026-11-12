@@ -7,7 +7,7 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
   const BAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></svg>';
-  let products = [], cats = [], cat = 'all', cart = [], q = '', sort = 'new';
+  let products = [], cats = [], cat = 'all', cart = [], q = '', sort = 'new', size = 'all', stockOnly = false;
   try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { cart = []; }
 
   const vs = p => (p.store_product_variants || []).filter(v => v.is_active);
@@ -45,64 +45,97 @@
       if (d.r !== undefined) cart.splice(+d.r, 1);
       if (d.m !== undefined || d.a !== undefined || d.r !== undefined) { saveCart(); drawCart(); }
     };
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeProduct(); closeCart(); } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('stPm').hidden) closeProduct(); else if (!$('stCart').hidden) closeCart(); else if ($('stAll') && !$('stAll').hidden) closeAll(); } });
     saveCart();
   }
 
+  /* ---------- product card (built to sell) ---------- */
+  function pc(p) {
+    const v = vs(p), out = soldOut(p), one = v.length === 1;
+    const base = Number(p.price), cmp = Number(p.compare_price) > base ? Number(p.compare_price) : 0;
+    const off = cmp ? Math.round((1 - base / cmp) * 100) : 0;
+    const left = p.track_stock ? v.reduce((a, x) => a + Math.max(0, x.stock), 0) : 99;
+    const sizes = [...new Set(v.filter(x => !p.track_stock || x.stock > 0).map(x => x.size))];
+    const showSizes = sizes.length && !(sizes.length === 1 && /free/i.test(sizes[0]));
+    return `<div class="pc" data-p="${p.id}"><div class="pc-img">${img0(p) ? `<img src="${esc(img0(p))}" alt="${esc(p.name)}" loading="lazy">` : ''}
+      ${off ? `<span class="pc-off-badge">${off}% OFF</span>` : ''}${out ? '<span class="pc-soldout">SOLD OUT</span>' : ''}</div>
+      <div class="pc-body"><h3 class="pc-name">${esc(p.name)}</h3>
+        ${showSizes ? `<div class="pc-sizes">${sizes.slice(0, 5).map(s => `<span>${esc(s)}</span>`).join('')}${sizes.length > 5 ? `<span>+${sizes.length - 5}</span>` : ''}</div>` : ''}
+        <div class="pc-price"><strong>${money(base)}</strong>${cmp ? `<s>${money(cmp)}</s>` : ''}</div>
+        ${!out && left <= 5 ? `<p class="pc-low">Only ${left} left</p>` : ''}
+        ${out ? '<button class="pc-btn" type="button" disabled>Sold out</button>' : `<button class="pc-btn" type="button" data-add="${p.id}">${one ? 'Add to cart' : 'Select size'}</button>`}</div></div>`;
+  }
+  function cardClick(e) {
+    const add = e.target.closest('[data-add]');
+    if (add) { const p = products.find(x => x.id === add.dataset.add), v = vs(p); if (v.length === 1) { addToCart(p, v[0], 1); toast('Added to cart'); } else openProduct(p); return; }
+    const c = e.target.closest('[data-p]'); if (c) openProduct(products.find(p => p.id === c.dataset.p));
+  }
+
+  /* ---------- home page: only a few products ---------- */
   function buildStore() {
     const grid = $('catalogGrid'), filt = $('catalogFilterContainer');
     if (!grid) return;
     grid.style.display = 'none'; if (filt) filt.style.display = 'none';
     const w = document.createElement('div'); w.id = 'stStore';
-    w.innerHTML = `<div class="st-tools"><input id="stQ" type="search" placeholder="Search dresses…" aria-label="Search dresses" autocomplete="off">
-      <select id="stSort" aria-label="Sort"><option value="new">Newest</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select></div>
-      <div class="st-chips" id="stChips"></div><p class="st-count-txt" id="stCountTxt"></p><div class="catalog-grid" id="stGrid"></div><div id="stCustom"></div>`;
+    w.innerHTML = '<div class="pc-grid" id="stGrid"></div><div class="st-more" id="stMore"></div><div id="stCustom"></div>';
     grid.after(w);
-    $('stQ').oninput = e => { q = e.target.value.trim(); drawGrid(); };
-    $('stSort').onchange = e => { sort = e.target.value; drawGrid(); };
-    $('stChips').onclick = e => { if (e.target.dataset.c) { cat = e.target.dataset.c; drawChips(); drawGrid(); } };
-    $('stGrid').onclick = e => {
-      const add = e.target.closest('[data-add]');
-      if (add) { const p = products.find(x => x.id === add.dataset.add), v = vs(p); if (v.length === 1) { addToCart(p, v[0], 1); toast('Added to cart'); } else openProduct(p); return; }
-      const c = e.target.closest('[data-p]'); if (c) openProduct(products.find(p => p.id === c.dataset.p));
-    };
+    $('stGrid').onclick = cardClick;
+    $('stMore').onclick = e => { if (e.target.closest('button')) openAll(); };
     $('stCustom').onclick = e => { const b = e.target.closest('[data-inq]'); if (b && typeof inquireWhatsApp === 'function') inquireWhatsApp(b.dataset.inq); };
-    drawChips(); drawGrid();
+    const n = window.innerWidth <= 600 ? 6 : 8;
+    $('stGrid').innerHTML = products.slice(0, n).map(pc).join('');
+    $('stMore').innerHTML = `<button class="btn btn-primary" type="button">${products.length > n ? 'View all ' + products.length + ' products' : 'Search all products'} →</button>`;
+    const items = (typeof SITE_CONTENT !== 'undefined' && Array.isArray(SITE_CONTENT.catalogItems) ? SITE_CONTENT.catalogItems : []).filter(i => i.category !== 'prayer');
+    $('stCustom').innerHTML = items.length ? `<h3 class="st-sub">Made to Order</h3><p class="st-subp">Custom stitching to your measurements. Send us an enquiry on WhatsApp.</p><div class="pc-grid">` +
+      items.map(i => `<div class="pc"><div class="pc-img"><img src="${esc(i.image)}" alt="${esc(i.title)}" loading="lazy"></div>
+        <div class="pc-body"><h3 class="pc-name">${esc(i.title)}</h3><p class="pc-desc">${esc(i.spec || i.desc)}</p><button class="pc-btn" type="button" data-inq="${esc(i.title)}">Inquire on WhatsApp</button></div></div>`).join('') + '</div>' : '';
+    buildAll();
   }
 
-  function drawChips() {
-    const used = cats.filter(c => products.some(p => p.category_id === c.id));
-    $('stChips').innerHTML = used.length < 2 ? '' : [{ id: 'all', name: 'All' }, ...used].map(c => `<button class="filter-btn ${cat === c.id ? 'active' : ''}" data-c="${c.id}" type="button">${esc(c.name)}</button>`).join('');
+  /* ---------- All Products view (search + filters), opens on top of the same page ---------- */
+  function buildAll() {
+    const ov = document.createElement('div'); ov.id = 'stAll'; ov.hidden = true;
+    ov.innerHTML = `<div class="al-head"><button type="button" class="al-back" id="alBack">← Back</button><strong>All Products</strong>
+        <button type="button" class="st-cart" id="alCart" aria-label="Open cart">${BAG}<b class="st-count">0</b></button></div>
+      <div class="al-tools"><input id="stQ" type="search" placeholder="Search dresses…" autocomplete="off" aria-label="Search dresses">
+        <div class="al-chips" id="stChips"></div>
+        <div class="al-row"><select id="stSort" aria-label="Sort"><option value="new">Newest</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select>
+          <select id="stSize" aria-label="Size"><option value="all">All sizes</option></select>
+          <label class="al-chk"><input type="checkbox" id="stStock"> In stock only</label></div>
+        <p class="st-count-txt" id="stCountTxt"></p></div>
+      <div class="al-wrap"><div class="pc-grid" id="alGrid"></div></div>`;
+    document.body.appendChild(ov);
+    const sizes = [...new Set(products.flatMap(p => vs(p).map(v => v.size)))];
+    $('stSize').innerHTML = '<option value="all">All sizes</option>' + sizes.map(s => `<option>${esc(s)}</option>`).join('');
+    $('alBack').onclick = closeAll; $('alCart').onclick = openCart;
+    $('stQ').oninput = e => { q = e.target.value.trim(); drawAll(); };
+    $('stSort').onchange = e => { sort = e.target.value; drawAll(); };
+    $('stSize').onchange = e => { size = e.target.value; drawAll(); };
+    $('stStock').onchange = e => { stockOnly = e.target.checked; drawAll(); };
+    $('stChips').onclick = e => { if (e.target.dataset.c) { cat = e.target.dataset.c; drawAll(); } };
+    $('alGrid').onclick = cardClick;
+    window.addEventListener('popstate', () => { if (location.hash === '#products') openAll(false); else hideAll(); });
+    saveCart();
+    if (location.hash === '#products') openAll(false);
   }
-  function view() {
+  function drawAll() {
+    const used = cats.filter(c => products.some(p => p.category_id === c.id));
+    $('stChips').innerHTML = used.length < 2 ? '' : [{ id: 'all', name: 'All' }, ...used].map(c => `<button class="al-chip ${cat === c.id ? 'on' : ''}" data-c="${c.id}" type="button">${esc(c.name)}</button>`).join('');
     const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
-    const l = products.filter(p => (cat === 'all' || p.category_id === cat) && terms.every(t => (p.name + ' ' + (p.description || '') + ' ' + catName(p.category_id)).toLowerCase().includes(t)));
+    const l = products.filter(p => (cat === 'all' || p.category_id === cat) && (size === 'all' || vs(p).some(v => v.size === size)) && (!stockOnly || !soldOut(p)) &&
+      terms.every(t => (p.name + ' ' + (p.description || '') + ' ' + catName(p.category_id)).toLowerCase().includes(t)));
     if (sort === 'low') l.sort((a, b) => a.price - b.price);
     if (sort === 'high') l.sort((a, b) => b.price - a.price);
-    return l;
+    $('stCountTxt').textContent = l.length + (l.length === 1 ? ' product' : ' products');
+    $('alGrid').innerHTML = l.length ? l.map(pc).join('') : `<p class="sh-msg" style="grid-column:1/-1">No dresses found${q ? ' for “' + esc(q) + '”' : ''}. Try changing the filters.</p>`;
   }
-  function drawGrid() {
-    const list = view();
-    $('stCountTxt').textContent = list.length + (list.length === 1 ? ' product' : ' products');
-    $('stGrid').innerHTML = list.length ? list.map(p => {
-      const one = vs(p).length === 1, out = soldOut(p), d = p.description || '';
-      return `<div class="catalog-card" data-p="${p.id}"><div class="catalog-image-container">
-        ${out ? '<span class="sh-badge">Sold out</span>' : ''}${img0(p) ? `<img src="${esc(img0(p))}" alt="${esc(p.name)}" loading="lazy">` : ''}
-        <div class="catalog-overlay"><button class="btn catalog-overlay-btn" type="button">Quick View</button></div></div>
-        <div class="catalog-info"><span class="catalog-category">${esc(catName(p.category_id))}</span><h3 class="catalog-title">${esc(p.name)}</h3>
-          <p class="catalog-desc">${esc(d.length > 90 ? d.slice(0, 90) + '…' : d)}</p>
-          <div class="catalog-footer"><span class="catalog-spec"><strong>${money(p.price)}</strong>${p.compare_price > p.price ? `<span class="sh-old">${money(p.compare_price)}</span>` : ''}</span>
-          ${out ? '<span class="catalog-spec">Sold out</span>' : `<button class="btn catalog-action-btn" type="button" data-add="${p.id}"><span>${one ? 'Add to cart' : 'Select size'}</span></button>`}</div></div></div>`;
-    }).join('') : `<p class="sh-msg" style="grid-column:1/-1">No dresses found${q ? ' for “' + esc(q) + '”' : ''}. Try another word.</p>`;
-    drawCustom();
+  function openAll(push = true) {
+    $('stAll').hidden = false; $('stAll').scrollTop = 0; document.body.style.overflow = 'hidden';
+    if (push) history.pushState({ all: 1 }, '', '#products');
+    drawAll();
   }
-  function drawCustom() {
-    const items = (typeof SITE_CONTENT !== 'undefined' && Array.isArray(SITE_CONTENT.catalogItems) ? SITE_CONTENT.catalogItems : []).filter(i => i.category !== 'prayer');
-    $('stCustom').innerHTML = items.length && cat === 'all' && !q ? `<h3 class="st-sub">Made to Order</h3><p class="st-subp">Custom stitching to your measurements. Send us an enquiry on WhatsApp.</p><div class="catalog-grid">` +
-      items.map(i => `<div class="catalog-card"><div class="catalog-image-container"><img src="${esc(i.image)}" alt="${esc(i.title)}" loading="lazy"></div>
-        <div class="catalog-info"><span class="catalog-category">${i.category === 'wedding' ? 'Wedding Center' : 'Custom Work'}</span><h3 class="catalog-title">${esc(i.title)}</h3><p class="catalog-desc">${esc(i.desc)}</p>
-        <div class="catalog-footer"><span class="catalog-spec">${esc(i.spec)}</span><button class="btn catalog-action-btn" type="button" data-inq="${esc(i.title)}"><span>Inquire</span></button></div></div></div>`).join('') + '</div>' : '';
-  }
+  function hideAll() { if ($('stAll')) { $('stAll').hidden = true; document.body.style.overflow = ''; } }
+  function closeAll() { if (history.state && history.state.all) history.back(); else { hideAll(); history.replaceState(null, '', location.pathname); } }
 
   function openProduct(p) {
     const list = vs(p), imgs = p.image_urls || [];
@@ -130,7 +163,7 @@
       draw();
     };
   }
-  function closeProduct() { $('stPm').hidden = true; document.body.style.overflow = ''; }
+  function closeProduct() { $('stPm').hidden = true; document.body.style.overflow = ($('stAll') && !$('stAll').hidden) ? 'hidden' : ''; }
 
   function addToCart(p, v, qty) {
     const ex = cart.find(i => i.id === v.id), max = p.track_stock ? v.stock : 20;
@@ -141,7 +174,7 @@
     saveCart();
   }
   function openCart() { drawCart(); $('stCart').hidden = false; document.body.style.overflow = 'hidden'; }
-  function closeCart() { $('stCart').hidden = true; document.body.style.overflow = ''; }
+  function closeCart() { $('stCart').hidden = true; document.body.style.overflow = ($('stAll') && !$('stAll').hidden) ? 'hidden' : ''; }
   function drawCart() {
     if (!cart.length) { $('stCartBody').innerHTML = '<p class="sh-msg">Your cart is empty.</p>'; return; }
     const sub = cart.reduce((a, i) => a + i.price * i.qty, 0);
