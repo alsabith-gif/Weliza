@@ -1,43 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout | Weliza</title>
-  <link rel="icon" href="favicon.png">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="shop.css">
-  <script src="construction.js"></script>
-</head>
-<body class="shop-body">
-  <header class="sh-head"><a href="index.html"><img src="assets/logo/logo_word_emerald.png" alt="Weliza" class="sh-logo"></a>
-    <div class="sh-nav"><a href="track.html">Track order</a><a href="index.html">Back to shop</a></div></header>
-  <main class="sh-main" id="ckMain">
-    <h1 class="sh-title">Checkout</h1>
-    <p class="sh-msg" id="ckLoad">Loading…</p>
-    <div class="ck-grid" id="ckGrid" hidden>
-      <form id="ckForm" class="ck-card">
-        <h2>Delivery details</h2>
-        <label>Full name *<input name="name" required maxlength="80" autocomplete="name"></label>
-        <label>Phone number *<input name="phone" required inputmode="tel" pattern="[0-9+ ]{10,15}" maxlength="15" autocomplete="tel" placeholder="10 digit mobile number"></label>
-        <label>Email (optional)<input name="email" type="email" maxlength="80" autocomplete="email"></label>
-        <label>Address *<textarea name="address_line" required rows="2" maxlength="250" autocomplete="street-address" placeholder="House name / number, street, area"></textarea></label>
-        <div class="ck-row"><label>City / Town *<input name="city" required maxlength="60" autocomplete="address-level2"></label>
-          <label>Pincode *<input name="pincode" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="postal-code"></label></div>
-        <label>State *<select name="state" id="ckState" required></select></label>
-        <label>Note to seller (optional)<textarea name="note" rows="2" maxlength="500" placeholder="Measurements for made-to-measure items, or any request"></textarea></label>
-        <h2>Payment</h2>
-        <div id="ckPay"></div>
-        <p class="ck-err" id="ckErr" hidden></p>
-        <button class="sh-btn" id="ckBtn" type="submit">Place order</button>
-        <p class="sh-note" style="margin-top:10px">By placing your order you agree to our <a href="terms-of-service.html">Terms</a>, <a href="return-policy.html">Return Policy</a> and <a href="shipping-policy.html">Shipping Policy</a>.</p>
-      </form>
-      <aside class="ck-card"><h2>Order summary</h2><div id="ckSum"></div>
-        <div class="ck-coupon"><input id="ckCode" placeholder="Coupon code"><button type="button" id="ckApply" class="sh-quick" style="width:auto;margin:0">Apply</button></div>
-        <p class="sh-note" id="ckCouponMsg"></p></aside>
-    </div>
-  </main>
-  <div id="toast" class="sh-toast"></div>
-  <script src="checkout.js"></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; url=index.html#checkout">
+<title>Weliza</title><script>location.replace('index.html#checkout');</script></head>
+<body><a href="index.html#checkout">Go to Weliza</a></body></html>

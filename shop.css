@@ -108,3 +108,24 @@
 .st-sub{text-align:center;margin:56px 0 6px;font-family:var(--font-heading);color:var(--emerald-deep);font-size:1.8rem}
 .st-subp{text-align:center;color:var(--text-secondary);margin:0 0 24px}
 #stGrid .catalog-card{cursor:pointer}
+/* Trust strip under the hero */
+.trust-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#fff;border-bottom:1px solid var(--bg-secondary);padding:18px 5vw}
+.trust-item{display:flex;align-items:center;gap:12px;justify-content:center}
+.trust-ic{font-size:1.7rem;line-height:1}
+.trust-item strong{display:block;color:var(--emerald-deep);font-size:.95rem}
+.trust-item small{color:var(--text-secondary);font-size:.8rem}
+@media(max-width:900px){.trust-strip{grid-template-columns:repeat(2,1fr);gap:14px 8px}.trust-item{justify-content:flex-start}}
+/* Phone polish */
+@media(max-width:600px){
+  .trust-ic{font-size:1.4rem}.trust-item strong{font-size:.85rem}.trust-item small{font-size:.72rem}
+  #stGrid{grid-template-columns:repeat(2,1fr);gap:12px}
+  #stGrid .catalog-desc{display:none}
+  #stGrid .catalog-title{font-size:1rem}
+  #stGrid .catalog-footer{flex-direction:column;align-items:stretch;gap:8px}
+  #stGrid .catalog-action-btn{width:100%;padding:10px 8px;justify-content:center}
+  .st-tools select{width:100%}
+  .sh-ov{padding:8px}.sh-modal{padding:14px}
+  .sh-item{grid-template-columns:56px 1fr auto}.sh-item img{width:56px;height:56px}
+}
+@media(hover:none){#stGrid .catalog-overlay{display:none}}
+.ck-card input,.ck-card select,.ck-card textarea,.st-tools input,.ck-coupon input{font-size:16px}

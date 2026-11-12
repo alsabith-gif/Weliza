@@ -158,4 +158,12 @@
     if (h === 'checkout.html') { e.preventDefault(); openCheckout(); }
     else if (h === 'track.html') { e.preventDefault(); openTrack(); }
   });
+  // Links like index.html#track or index.html#checkout open the pop-ups
+  function hashOpen() {
+    const h = location.hash;
+    if (h === '#track') { history.replaceState(null, '', location.pathname); openTrack(); }
+    else if (h === '#checkout') { history.replaceState(null, '', location.pathname); openCheckout(); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hashOpen); else hashOpen();
+  window.addEventListener('hashchange', hashOpen);
 })();
