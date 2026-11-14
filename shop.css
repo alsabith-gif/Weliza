@@ -156,3 +156,10 @@
 @media(max-width:600px){.al-row{display:grid;grid-template-columns:1fr 1fr}.al-row select{min-width:0}.al-chk{grid-column:1/-1}}
 .ck-card input,.ck-card select,.ck-card textarea,.ck-coupon input{font-size:16px}
 .sh-ov{padding:14px}@media(max-width:600px){.sh-ov{padding:8px}.sh-modal{padding:14px}.sh-item{grid-template-columns:56px 1fr auto}.sh-item img{width:56px;height:56px}}
+/* Customer accounts */
+.st-acct{position:relative;background:none;border:0;cursor:pointer;color:var(--emerald);padding:6px;margin-left:22px;display:flex}
+.st-acct svg{width:25px;height:25px}
+.st-acct.on::after{content:"";position:absolute;top:4px;right:3px;width:9px;height:9px;border-radius:50%;background:#2e9e5b;border:2px solid #fff}
+.st-acct + .st-cart{margin-left:8px}
+@media(max-width:768px){.st-acct{margin-left:auto}.st-acct + .st-cart{margin-left:6px;margin-right:14px}}
+.ac-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin:0 36px 10px 0}

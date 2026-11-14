@@ -13,7 +13,8 @@
 
   async function get(path) { const r = await fetch(API + path, { headers: H }); if (!r.ok) throw new Error('load'); return r.json(); }
   async function rpc(fn, body) {
-    const r = await fetch(API + 'rpc/' + fn, { method: 'POST', headers: H, body: JSON.stringify(body) });
+    const t = window.WelizaAuth ? await window.WelizaAuth.token() : null;
+    const r = await fetch(API + 'rpc/' + fn, { method: 'POST', headers: { ...H, Authorization: 'Bearer ' + (t || KEY) }, body: JSON.stringify(body) });
     const d = await r.json().catch(() => null);
     if (!r.ok) throw new Error((d && d.message) || 'Something went wrong. Please try again.');
     return d;
@@ -69,6 +70,10 @@
   }
 
   async function openCheckout() {
+    if (window.WelizaAuth && !(await window.WelizaAuth.token())) {
+      const c = $('stCart'); if (c) c.hidden = true;
+      window.WelizaAuth.openLogin({ message: 'Please log in or create an account to place your order. Your cart is saved.', then: openCheckout }); return;
+    }
     const ov = ensure('coOv', 980), body = ov.querySelector('.ov-body'); disc = 0; code = '';
     body.innerHTML = '<h2 class="sh-title" style="margin:0 0 14px">Checkout</h2><p class="sh-msg">Loading…</p>'; show(ov);
     try {
@@ -85,6 +90,7 @@
           <label>Pincode *<input name="pincode" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="postal-code"></label></div>
         <label>State *<select name="state" required>${STATES.map(x => `<option>${x}</option>`).join('')}</select></label>
         <label>Note to seller (optional)<textarea name="note" rows="2" maxlength="500" placeholder="Measurements for made-to-measure items, or any request"></textarea></label>
+        <label class="ck-radio" style="margin-bottom:12px"><input type="checkbox" name="_save" checked> Save these details for my next order</label>
         <h2>Payment</h2>
         ${S.cod_enabled ? '<label class="ck-radio"><input type="radio" checked> Cash on Delivery <small>Pay when your order arrives</small></label>' : '<p class="ck-err">Cash on Delivery is not available right now.</p>'}
         <label class="ck-radio" style="opacity:.5"><input type="radio" disabled> Net banking <small>Coming soon</small></label>
@@ -94,6 +100,11 @@
       <aside class="ck-card"><h2>Order summary</h2><div id="coSum"></div>
         <div class="ck-coupon"><input id="coCode" placeholder="Coupon code"><button type="button" id="coApply" class="sh-quick" style="width:auto;margin:0">Apply</button></div><p class="sh-note" id="coMsg"></p></aside></div>`;
       drawSum();
+      if (window.WelizaAuth) {
+        const pr = await window.WelizaAuth.profile(), set = (n, v) => { const el = $('coForm').elements[n]; if (el && v) el.value = v; };
+        if (pr) ['name', 'phone', 'address_line', 'city', 'pincode', 'state'].forEach(k => set(k, pr[k]));
+        set('email', (pr && pr.email) || window.WelizaAuth.email());
+      }
       $('coApply').onclick = async () => {
         const c = $('coCode').value.trim(); if (!c) return;
         try {
@@ -105,7 +116,7 @@
       };
       $('coForm').onsubmit = async e => {
         e.preventDefault();
-        const f = new FormData($('coForm')), btn = $('coBtn');
+        const f = new FormData($('coForm')), btn = $('coBtn'), keep = f.get('_save'); f.delete('_save');
         $('coErr').hidden = true; btn.disabled = true; btn.textContent = 'Placing your order…';
         try {
           const res = await rpc('store_place_order', {
@@ -113,6 +124,7 @@
             p_items: cart.map(i => ({ variant_id: i.id, qty: i.qty })),
             p_payment_method: 'cod', p_coupon: code || null
           });
+          if (keep && window.WelizaAuth) window.WelizaAuth.saveProfile({ name: f.get('name'), phone: f.get('phone'), email: f.get('email') || null, address_line: f.get('address_line'), city: f.get('city'), state: f.get('state'), pincode: f.get('pincode') }).catch(() => {});
           cart = []; saveCart();
           body.innerHTML = `<div style="text-align:center;max-width:520px;margin:10px auto"><h2 class="sh-title">Thank you! 🎉</h2><p>Your order has been placed.</p>
             <p style="font-size:1.3rem"><strong>Order number: ${esc(res.order_no)}</strong></p>
@@ -122,7 +134,9 @@
             <a href="#catalog" data-close>Continue shopping</a></div>`;
           $('coTrack').onclick = () => { ov.querySelector('.sh-x').click(); openTrack(res.order_no); };
           ov.scrollTop = 0;
-        } catch (ex) { $('coErr').hidden = false; $('coErr').textContent = ex.message; btn.disabled = false; btn.textContent = 'Place order'; }
+        } catch (ex) {
+          if (/log in/i.test(ex.message) && window.WelizaAuth) { ov.querySelector('.sh-x').click(); window.WelizaAuth.openLogin({ message: ex.message, then: openCheckout }); return; }
+          $('coErr').hidden = false; $('coErr').textContent = ex.message; btn.disabled = false; btn.textContent = 'Place order'; }
       };
     } catch (e) { body.innerHTML = '<h2 class="sh-title" style="margin:0 0 14px">Checkout</h2><p class="sh-msg">Sorry, checkout could not load. Please try again.</p>'; }
   }
