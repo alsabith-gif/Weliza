@@ -1,10 +1,9 @@
 // Weliza emails (sent through EmailJS).
-// STEP: paste your 3 EmailJS values between the quotes below, save, and upload this file.
-// Leave them empty to keep emails switched off. The site works either way.
+// Your 3 EmailJS values are filled in below. Empty them to switch emails off.
 window.WELIZA_MAIL = {
-  serviceId: '',    // EmailJS "Service ID", looks like service_abc123
-  templateId: '',   // EmailJS "Template ID", looks like template_abc123
-  publicKey: '',    // EmailJS "Public Key"
+  serviceId: 'service_zvnh14r', // EmailJS "Service ID", looks like service_abc123
+  templateId: 'template_b8nqbw2', // EmailJS "Template ID", looks like template_abc123
+  publicKey: 'b3P3wCLVZA1pYPXS0', // EmailJS "Public Key"
   ownerEmail: 'welizafashions@gmail.com'
 };
 window.WelizaMail = {
