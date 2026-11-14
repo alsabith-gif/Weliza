@@ -125,6 +125,7 @@
             p_payment_method: 'cod', p_coupon: code || null
           });
           if (keep && window.WelizaAuth) window.WelizaAuth.saveProfile({ name: f.get('name'), phone: f.get('phone'), email: f.get('email') || null, address_line: f.get('address_line'), city: f.get('city'), state: f.get('state'), pincode: f.get('pincode') }).catch(() => {});
+          orderMails(res, f, cart.slice());
           cart = []; saveCart();
           body.innerHTML = `<div style="text-align:center;max-width:520px;margin:10px auto"><h2 class="sh-title">Thank you! 🎉</h2><p>Your order has been placed.</p>
             <p style="font-size:1.3rem"><strong>Order number: ${esc(res.order_no)}</strong></p>
@@ -139,6 +140,17 @@
           $('coErr').hidden = false; $('coErr').textContent = ex.message; btn.disabled = false; btn.textContent = 'Place order'; }
       };
     } catch (e) { body.innerHTML = '<h2 class="sh-title" style="margin:0 0 14px">Checkout</h2><p class="sh-msg">Sorry, checkout could not load. Please try again.</p>'; }
+  }
+
+  function orderMails(res, f, items) {
+    if (!window.WelizaMail || !window.WelizaMail.ready()) return;
+    const lines = items.map(i => `- ${i.name} (${i.label}) × ${i.qty} - ${money(i.price * i.qty)}`).join('\n');
+    const addr = `${f.get('name')}\n${f.get('address_line')}\n${f.get('city')}, ${f.get('state')} - ${f.get('pincode')}\nPhone: ${f.get('phone')}`;
+    const to = f.get('email') || (window.WelizaAuth && window.WelizaAuth.email());
+    window.WelizaMail.send(to, `Your Weliza order ${res.order_no} is confirmed`,
+      `Hi ${f.get('name')},\n\nThank you for your order!\n\nOrder number: ${res.order_no}\nPayment: Cash on Delivery\nTotal to pay on delivery: ${money(res.total)}\n\nItems:\n${lines}\n\nDelivery address:\n${addr}\n\nYou can follow your order any time in My Account on weliza.in.\nNeed help? Message us on WhatsApp: +91 75929 45893\n\nWeliza`);
+    window.WelizaMail.send(window.WELIZA_MAIL.ownerEmail, `New order ${res.order_no} - ${money(res.total)}`,
+      `New online order!\n\nOrder: ${res.order_no}\nTotal (Cash on Delivery): ${money(res.total)}\n\nCustomer:\n${addr}\nEmail: ${to || '-'}\n\nItems:\n${lines}\n\nNote from customer: ${f.get('note') || '-'}`);
   }
 
   /* ---------- TRACK ORDER ---------- */

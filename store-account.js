@@ -11,6 +11,20 @@
   const STEPS = [['new', 'Order placed'], ['confirmed', 'Confirmed'], ['packed', 'Packed'], ['shipped', 'Shipped'], ['delivered', 'Delivered']];
   const NAME = { new: 'Order placed', confirmed: 'Confirmed', packed: 'Packed', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled', return_requested: 'Return requested', returned: 'Returned' };
   const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
+  const CAPTCHA_SITE_KEY = '0x4AAAAAAGBDpfWqezDFX2Pa';   // paste your Cloudflare Turnstile Site Key here to switch the security check on
+  let tsLoad = null;
+  function loadTs() {
+    if (!CAPTCHA_SITE_KEY) return Promise.resolve(false);
+    if (window.turnstile) return Promise.resolve(true);
+    if (!tsLoad) tsLoad = new Promise(res => { const sc = document.createElement('script'); sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'; sc.async = true; sc.onload = () => res(true); sc.onerror = () => res(false); document.head.appendChild(sc); });
+    return tsLoad;
+  }
+  async function captcha(boxId) {
+    const box = document.getElementById(boxId); if (!box || !CAPTCHA_SITE_KEY || !(await loadTs())) return null;
+    let tok = null; const id = window.turnstile.render(box, { sitekey: CAPTCHA_SITE_KEY, callback: t => { tok = t; }, 'expired-callback': () => { tok = null; } });
+    return { token: () => tok, reset: () => { tok = null; window.turnstile.reset(id); } };
+  }
+  const sec = c => (c ? { gotrue_meta_security: { captcha_token: c.token() } } : {});
   let sess = null, prof, then = null, refreshing = null;
   try { sess = JSON.parse(localStorage.getItem(SK)); } catch (e) {}
 
@@ -70,18 +84,21 @@
 
   function openLogin(o = {}) {
     then = o.then || null;
-    const x = ov('lgOv', 440), b = x.querySelector('.ov-body'); let mode = 'in';
+    const x = ov('lgOv', 440), b = x.querySelector('.ov-body'); let mode = 'in', cap = null, fcap = null;
     const draw = () => {
       if (mode === 'forgot') {
         b.innerHTML = `<h2 class="sh-title" style="margin:0 0 6px">Reset your password</h2><p class="sh-note" style="margin:0 0 12px">Enter your email and we will send you a link to choose a new password.</p>
           <form id="fgForm" class="ck-card" style="box-shadow:none;padding:0"><label>Email *<input name="email" type="email" required autocomplete="email"></label>
-          <p class="ck-err" id="fgMsg" hidden></p><button class="sh-btn" id="fgBtn" type="submit">Send reset link</button></form>
+          <div id="fgCap" style="margin-bottom:10px"></div><p class="ck-err" id="fgMsg" hidden></p><button class="sh-btn" id="fgBtn" type="submit">Send reset link</button></form>
           <p class="sh-note" style="text-align:center;margin-top:14px"><a href="#" id="fgBack">Back to log in</a></p>`;
+        captcha('fgCap').then(c => { fcap = c; });
         $('fgBack').onclick = e => { e.preventDefault(); mode = 'in'; draw(); };
         $('fgForm').onsubmit = async e => {
-          e.preventDefault(); const m = $('fgMsg'), btn = $('fgBtn'); btn.disabled = true; m.hidden = false; m.style.color = '';
-          try { await api('recover', { email: new FormData(e.target).get('email').trim() }); m.style.color = '#2e7d4f'; m.textContent = 'If this email has an account, a reset link is on its way. Please check your inbox and spam folder.'; }
-          catch (ex) { m.textContent = ex.message; btn.disabled = false; }
+          e.preventDefault(); const m = $('fgMsg'), btn = $('fgBtn'); m.hidden = false; m.style.color = '';
+          if (fcap && !fcap.token()) { m.textContent = 'Please complete the security check.'; return; }
+          btn.disabled = true;
+          try { await api('recover', { email: new FormData(e.target).get('email').trim(), ...sec(fcap) }); if (fcap) fcap.reset(); m.style.color = '#2e7d4f'; m.textContent = 'If this email has an account, a reset link is on its way. Please check your inbox and spam folder.'; }
+          catch (ex) { m.textContent = ex.message; btn.disabled = false; if (fcap) fcap.reset(); }
         };
         return;
       }
@@ -92,24 +109,26 @@
           <label>Email *<input name="email" type="email" required autocomplete="email"></label>
           <label>Password *<input name="password" type="password" required minlength="6" autocomplete="${mode === 'in' ? 'current-password' : 'new-password'}" ${mode === 'up' ? 'placeholder="At least 6 characters"' : ''}></label>
           ${mode === 'in' ? '<p style="text-align:right;margin:-4px 0 10px"><a href="#" data-fg="1">Forgot password?</a></p>' : ''}
-          <p class="ck-err" id="lgErr" hidden></p><button class="sh-btn" id="lgBtn" type="submit">${mode === 'in' ? 'Log in' : 'Create account'}</button></form>
+          <div id="lgCap" style="margin-bottom:10px"></div><p class="ck-err" id="lgErr" hidden></p><button class="sh-btn" id="lgBtn" type="submit">${mode === 'in' ? 'Log in' : 'Create account'}</button></form>
         <p class="sh-note" style="text-align:center;margin-top:14px">${mode === 'in' ? 'New here? <a href="#" data-sw="up">Create an account</a>' : 'Already have an account? <a href="#" data-sw="in">Log in</a>'}</p>`;
       const fg = b.querySelector('[data-fg]'); if (fg) fg.onclick = e => { e.preventDefault(); mode = 'forgot'; draw(); };
       b.querySelector('[data-sw]').onclick = e => { e.preventDefault(); mode = e.target.dataset.sw; draw(); };
-      $('lgForm').onsubmit = submit;
+      $('lgForm').onsubmit = submit; cap = null; captcha('lgCap').then(c => { cap = c; });
     };
     async function submit(e) {
       e.preventDefault();
       const f = Object.fromEntries(new FormData(e.target).entries()), btn = $('lgBtn'), err = $('lgErr');
-      err.hidden = true; btn.disabled = true;
+      err.hidden = true;
+      if (cap && !cap.token()) { err.hidden = false; err.textContent = 'Please complete the security check.'; return; }
+      btn.disabled = true;
       try {
         if (mode === 'up') {
-          const d = await api('signup', { email: f.email.trim(), password: f.password, data: { name: f.name.trim(), phone: f.phone.trim() } });
+          const d = await api('signup', { email: f.email.trim(), password: f.password, data: { name: f.name.trim(), phone: f.phone.trim() }, ...sec(cap) });
           if (!d.access_token) { err.hidden = false; err.textContent = 'Account created. Please check your email to confirm it, then log in.'; btn.disabled = false; return; }
           save(pack(d)); await saveProfile({ name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim() }).catch(() => {});
-        } else { save(pack(await api('token?grant_type=password', { email: f.email.trim(), password: f.password }))); await profile(true); }
+        } else { save(pack(await api('token?grant_type=password', { email: f.email.trim(), password: f.password, ...sec(cap) }))); await profile(true); }
         const cb = then; then = null; x.querySelector('.sh-x').click(); toast('Welcome to Weliza!'); if (cb) cb();
-      } catch (ex) { err.hidden = false; err.textContent = ex.message; btn.disabled = false; }
+      } catch (ex) { err.hidden = false; err.textContent = ex.message; btn.disabled = false; if (cap) cap.reset(); }
     }
     draw(); show(x);
   }
