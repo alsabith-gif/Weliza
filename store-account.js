@@ -72,14 +72,29 @@
     then = o.then || null;
     const x = ov('lgOv', 440), b = x.querySelector('.ov-body'); let mode = 'in';
     const draw = () => {
+      if (mode === 'forgot') {
+        b.innerHTML = `<h2 class="sh-title" style="margin:0 0 6px">Reset your password</h2><p class="sh-note" style="margin:0 0 12px">Enter your email and we will send you a link to choose a new password.</p>
+          <form id="fgForm" class="ck-card" style="box-shadow:none;padding:0"><label>Email *<input name="email" type="email" required autocomplete="email"></label>
+          <p class="ck-err" id="fgMsg" hidden></p><button class="sh-btn" id="fgBtn" type="submit">Send reset link</button></form>
+          <p class="sh-note" style="text-align:center;margin-top:14px"><a href="#" id="fgBack">Back to log in</a></p>`;
+        $('fgBack').onclick = e => { e.preventDefault(); mode = 'in'; draw(); };
+        $('fgForm').onsubmit = async e => {
+          e.preventDefault(); const m = $('fgMsg'), btn = $('fgBtn'); btn.disabled = true; m.hidden = false; m.style.color = '';
+          try { await api('recover', { email: new FormData(e.target).get('email').trim() }); m.style.color = '#2e7d4f'; m.textContent = 'If this email has an account, a reset link is on its way. Please check your inbox and spam folder.'; }
+          catch (ex) { m.textContent = ex.message; btn.disabled = false; }
+        };
+        return;
+      }
       b.innerHTML = `<h2 class="sh-title" style="margin:0 0 6px">${mode === 'in' ? 'Log in' : 'Create your account'}</h2>
         ${o.message ? `<p class="sh-note" style="margin:0 0 12px">${esc(o.message)}</p>` : ''}
         <form id="lgForm" class="ck-card" style="box-shadow:none;padding:0">
           ${mode === 'up' ? '<label>Full name *<input name="name" required maxlength="80" autocomplete="name"></label><label>Phone number *<input name="phone" required inputmode="tel" pattern="[0-9+ ]{10,15}" maxlength="15" autocomplete="tel" placeholder="10 digit mobile number"></label>' : ''}
           <label>Email *<input name="email" type="email" required autocomplete="email"></label>
           <label>Password *<input name="password" type="password" required minlength="6" autocomplete="${mode === 'in' ? 'current-password' : 'new-password'}" ${mode === 'up' ? 'placeholder="At least 6 characters"' : ''}></label>
+          ${mode === 'in' ? '<p style="text-align:right;margin:-4px 0 10px"><a href="#" data-fg="1">Forgot password?</a></p>' : ''}
           <p class="ck-err" id="lgErr" hidden></p><button class="sh-btn" id="lgBtn" type="submit">${mode === 'in' ? 'Log in' : 'Create account'}</button></form>
         <p class="sh-note" style="text-align:center;margin-top:14px">${mode === 'in' ? 'New here? <a href="#" data-sw="up">Create an account</a>' : 'Already have an account? <a href="#" data-sw="in">Log in</a>'}</p>`;
+      const fg = b.querySelector('[data-fg]'); if (fg) fg.onclick = e => { e.preventDefault(); mode = 'forgot'; draw(); };
       b.querySelector('[data-sw]').onclick = e => { e.preventDefault(); mode = e.target.dataset.sw; draw(); };
       $('lgForm').onsubmit = submit;
     };
@@ -121,8 +136,13 @@
           <small>${fmt(o.created_at)} · ${o.payment_method === 'cod' ? 'Cash on Delivery' : 'Online'}</small>${bar}
           ${o.courier || o.tracking_no ? `<p style="margin:0 0 8px">Courier: <strong>${esc(o.courier || '-')}</strong> · Tracking: <strong>${esc(o.tracking_no || '-')}</strong></p>` : ''}
           ${(o.store_order_items || []).map(i => `<div class="ck-line"><span>${esc(i.product_name)} (${esc(i.size || '')}${i.color ? ' / ' + esc(i.color) : ''}) × ${i.qty}</span><span>${money(i.line_total)}</span></div>`).join('')}
-          <div class="ck-line ck-total"><span>Total</span><span>${money(o.total)}</span></div></div>`;
+          <div class="ck-line ck-total"><span>Total</span><span>${money(o.total)}</span></div>
+          ${['new', 'confirmed'].includes(o.order_status) ? `<button class="sh-quick" type="button" data-cx="${o.id}" style="margin-top:10px">Cancel this order</button>` : ''}</div>`;
       }).join('') : '<p class="sh-msg">You have not placed any orders yet.</p>';
+      body.onclick = async e => {
+        const id = e.target.dataset.cx; if (!id || !confirm('Cancel this order?')) return;
+        try { await db('rpc/store_customer_cancel_order', 'POST', { p_order_id: id }); toast('Order cancelled'); orders(); } catch (ex) { toast(ex.message); }
+      };
     } catch (e) { body.innerHTML = `<p class="ck-err">${esc(e.message)}</p>`; }
   }
 
@@ -142,6 +162,31 @@
     };
   }
 
+  async function handleRecovery() {
+    const h = new URLSearchParams(location.hash.slice(1));
+    if (h.get('type') !== 'recovery' || !h.get('access_token')) return;
+    const at = h.get('access_token'), rt = h.get('refresh_token'), ex = +h.get('expires_in') || 3600;
+    history.replaceState(null, '', location.pathname);
+    try {
+      const u = await (await fetch(BASE + '/auth/v1/user', { headers: { apikey: KEY, Authorization: 'Bearer ' + at } })).json();
+      if (!u.id) throw new Error('bad');
+      save({ access_token: at, refresh_token: rt, expires_at: Math.floor(Date.now() / 1000) + ex, uid: u.id, email: u.email });
+    } catch (e) { toast('This reset link has expired. Please try again.'); return; }
+    const x = ov('npOv', 440), b = x.querySelector('.ov-body');
+    b.innerHTML = `<h2 class="sh-title" style="margin:0 0 6px">Choose a new password</h2><form id="npForm" class="ck-card" style="box-shadow:none;padding:0">
+      <label>New password *<input name="password" type="password" required minlength="6" autocomplete="new-password" placeholder="At least 6 characters"></label>
+      <p class="ck-err" id="npErr" hidden></p><button class="sh-btn" type="submit">Save new password</button></form>`;
+    show(x);
+    $('npForm').onsubmit = async e => {
+      e.preventDefault();
+      try {
+        const r = await fetch(BASE + '/auth/v1/user', { method: 'PUT', headers: { apikey: KEY, Authorization: 'Bearer ' + (await token()), 'Content-Type': 'application/json' }, body: JSON.stringify({ password: new FormData(e.target).get('password') }) });
+        const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(friendly(d));
+        x.querySelector('.sh-x').click(); toast('Password updated. You are logged in.');
+      } catch (er) { $('npErr').hidden = false; $('npErr').textContent = er.message; }
+    };
+  }
+
   function paint() { document.querySelectorAll('.st-acct').forEach(b => { b.classList.toggle('on', !!sess); b.title = sess ? 'My account' : 'Log in'; }); }
   function init() {
     const b = document.createElement('button');
@@ -149,7 +194,7 @@
     b.onclick = () => (sess ? openAccount() : openLogin());
     const c = document.querySelector('.st-cart'), t = $('menuToggle');
     if (c) c.before(b); else if (t) t.before(b); else $('navbar').appendChild(b);
-    paint();
+    paint(); handleRecovery();
   }
   window.WelizaAuth = { token, profile, saveProfile, openLogin, isIn: () => !!sess, email: () => sess && sess.email };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
