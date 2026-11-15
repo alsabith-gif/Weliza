@@ -49,15 +49,48 @@
     saveCart();
   }
 
+  /* ---------- wishlist (saved on this phone or computer) ---------- */
+  const WK = 'weliza_wish_v1';
+  const HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.8-4.7-9.4-9.6C1.5 7.6 3.4 4.5 6.6 4.500c2 0 3.5 1.1 5.4 3.2 1.9-2.1 3.4-3.2 5.4-3.2 3.2 0 5.1 3.1 4 6.4-1.6 4.9-9.4 9.6-9.4 9.600z"/></svg>';
+  let wish = new Set();
+  try { wish = new Set(JSON.parse(localStorage.getItem(WK)) || []); } catch (e) {}
+  function paintWish() {
+    document.querySelectorAll('.st-wcount').forEach(e => { e.textContent = wish.size; e.style.display = wish.size ? '' : 'none'; });
+    document.querySelectorAll('.pc-heart').forEach(b => b.classList.toggle('on', wish.has(b.dataset.w)));
+  }
+  function toggleWish(id) {
+    if (wish.has(id)) wish.delete(id); else wish.add(id);
+    try { localStorage.setItem(WK, JSON.stringify([...wish])); } catch (e) {}
+    paintWish(); toast(wish.has(id) ? 'Saved to your wishlist' : 'Removed from wishlist');
+    if ($('stWish') && !$('stWish').hidden) drawWish();
+  }
+  function drawWish() {
+    const l = products.filter(p => wish.has(p.id));
+    $('swGrid').innerHTML = l.length ? l.map(p => pc(p, true)).join('') : '<p class="sh-msg" style="grid-column:1/-1">Tap the heart on any dress to save it here.</p>';
+    paintWish();
+  }
+  function openWish() {
+    let x = $('stWish');
+    if (!x) {
+      x = document.createElement('div'); x.id = 'stWish'; x.className = 'sh-ov'; x.hidden = true;
+      x.innerHTML = '<div class="sh-modal" style="max-width:980px"><button class="sh-x" type="button" aria-label="Close">✕</button><h2 class="sh-title" style="margin:0 0 14px">My Wishlist</h2><div class="pc-grid" id="swGrid"></div></div>';
+      document.body.appendChild(x);
+      const close = () => { x.hidden = true; document.body.style.overflow = ''; };
+      x.querySelector('.sh-x').onclick = close; x.onclick = e => { if (e.target === x) close(); };
+      $('swGrid').onclick = cardClick;
+    }
+    x.hidden = false; document.body.style.overflow = 'hidden'; drawWish();
+  }
+
   /* ---------- product card (built to sell) ---------- */
-  function pc(p) {
+  function pc(p, withSizes) {
     const v = vs(p), out = soldOut(p), one = v.length === 1;
     const base = Number(p.price), cmp = Number(p.compare_price) > base ? Number(p.compare_price) : 0;
     const off = cmp ? Math.round((1 - base / cmp) * 100) : 0;
     const left = p.track_stock ? v.reduce((a, x) => a + Math.max(0, x.stock), 0) : 99;
     const sizes = [...new Set(v.filter(x => !p.track_stock || x.stock > 0).map(x => x.size))];
-    const showSizes = sizes.length && !(sizes.length === 1 && /free/i.test(sizes[0]));
-    return `<div class="pc" data-p="${p.id}"><div class="pc-img">${img0(p) ? `<img src="${esc(img0(p))}" alt="${esc(p.name)}" loading="lazy">` : ''}
+    const showSizes = withSizes && sizes.length && !(sizes.length === 1 && /free/i.test(sizes[0]));
+    return `<div class="pc" data-p="${p.id}"><div class="pc-img"><button class="pc-heart ${wish.has(p.id) ? 'on' : ''}" type="button" data-w="${p.id}" aria-label="Save to wishlist">${HEART}</button>${img0(p) ? `<img src="${esc(img0(p))}" alt="${esc(p.name)}" loading="lazy">` : ''}
       ${off ? `<span class="pc-off-badge">${off}% OFF</span>` : ''}${out ? '<span class="pc-soldout">SOLD OUT</span>' : ''}</div>
       <div class="pc-body"><h3 class="pc-name">${esc(p.name)}</h3>
         ${showSizes ? `<div class="pc-sizes">${sizes.slice(0, 5).map(s => `<span>${esc(s)}</span>`).join('')}${sizes.length > 5 ? `<span>+${sizes.length - 5}</span>` : ''}</div>` : ''}
@@ -66,6 +99,7 @@
         ${out ? '<button class="pc-btn" type="button" disabled>Sold out</button>' : `<button class="pc-btn" type="button" data-add="${p.id}">${one ? 'Add to cart' : 'Select size'}</button>`}</div></div>`;
   }
   function cardClick(e) {
+    const w = e.target.closest('[data-w]'); if (w) { e.stopPropagation(); toggleWish(w.dataset.w); return; }
     const add = e.target.closest('[data-add]');
     if (add) { const p = products.find(x => x.id === add.dataset.add), v = vs(p); if (v.length === 1) { addToCart(p, v[0], 1); toast('Added to cart'); } else openProduct(p); return; }
     const c = e.target.closest('[data-p]'); if (c) openProduct(products.find(p => p.id === c.dataset.p));
@@ -83,7 +117,7 @@
     $('stMore').onclick = e => { if (e.target.closest('button')) openAll(); };
     $('stCustom').onclick = e => { const b = e.target.closest('[data-inq]'); if (b && typeof inquireWhatsApp === 'function') inquireWhatsApp(b.dataset.inq); };
     const n = window.innerWidth <= 600 ? 6 : 8;
-    $('stGrid').innerHTML = products.slice(0, n).map(pc).join('');
+    $('stGrid').innerHTML = products.slice(0, n).map(p => pc(p)).join('');
     $('stMore').innerHTML = `<button class="btn btn-primary" type="button">${products.length > n ? 'View all ' + products.length + ' products' : 'Search all products'} →</button>`;
     const items = (typeof SITE_CONTENT !== 'undefined' && Array.isArray(SITE_CONTENT.catalogItems) ? SITE_CONTENT.catalogItems : []).filter(i => i.category !== 'prayer');
     $('stCustom').innerHTML = items.length ? `<h3 class="st-sub">Made to Order</h3><p class="st-subp">Custom stitching to your measurements. Send us an enquiry on WhatsApp.</p><div class="pc-grid">` +
@@ -127,7 +161,7 @@
     if (sort === 'low') l.sort((a, b) => a.price - b.price);
     if (sort === 'high') l.sort((a, b) => b.price - a.price);
     $('stCountTxt').textContent = l.length + (l.length === 1 ? ' product' : ' products');
-    $('alGrid').innerHTML = l.length ? l.map(pc).join('') : `<p class="sh-msg" style="grid-column:1/-1">No dresses found${q ? ' for “' + esc(q) + '”' : ''}. Try changing the filters.</p>`;
+    $('alGrid').innerHTML = l.length ? l.map(p => pc(p, true)).join('') : `<p class="sh-msg" style="grid-column:1/-1">No dresses found${q ? ' for “' + esc(q) + '”' : ''}. Try changing the filters.</p>`;
   }
   function openAll(push = true) {
     $('stAll').hidden = false; $('stAll').scrollTop = 0; document.body.style.overflow = 'hidden';
@@ -151,7 +185,8 @@
         ${sel && p.track_stock && sel.stock > 0 && sel.stock <= 5 ? `<p class="sh-low">Only ${sel.stock} left</p>` : ''}
         ${p.is_made_to_measure ? '<p class="sh-note">Made to measure. You can add your measurements at checkout.</p>' : ''}
         <div class="sh-qty"><button type="button" data-q="-1">−</button><strong>${qty}</strong><button type="button" data-q="1">+</button></div>
-        <button class="sh-btn" type="button" data-add="1" ${out ? 'disabled' : ''}>${out ? 'Sold out' : 'Add to cart'}</button></div></div>`;
+        <button class="sh-btn" type="button" data-add="1" ${out ? 'disabled' : ''}>${out ? 'Sold out' : 'Add to cart'}</button>
+        <button class="sh-quick" type="button" data-wm="1" style="margin-top:10px">${wish.has(p.id) ? '♥ Saved to wishlist' : '♡ Save to wishlist'}</button></div></div>`;
     };
     draw();
     $('stPmBody').onclick = e => {
@@ -159,6 +194,7 @@
       if (t.dataset.i) im = +t.dataset.i;
       if (t.dataset.v) { sel = list.find(v => v.id === t.dataset.v); qty = 1; }
       if (t.dataset.q) { const max = p.track_stock && sel ? sel.stock : 20; qty = Math.max(1, Math.min(max, 20, qty + +t.dataset.q)); }
+      if (t.dataset.wm) toggleWish(p.id);
       if (t.dataset.add && sel) { addToCart(p, sel, qty); closeProduct(); openCart(); return; }
       draw();
     };
@@ -185,6 +221,15 @@
       `<div class="sh-sub"><span>Subtotal</span><span>${money(sub)}</span></div><p class="sh-note">Shipping and the final total are shown at checkout.</p>
        <a class="sh-btn" href="checkout.html" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box">Checkout</a>`;
   }
+
+  function searchAll(text) {
+    if (!$('stAll')) return;
+    q = String(text || '').trim(); openAll(); $('stQ').value = q; drawAll();
+  }
+  window.WelizaStore = {
+    products: () => products, catName, money, searchAll, openWish, paintWish,
+    openProduct: id => { const p = products.find(x => x.id === id); if (p) openProduct(p); }
+  };
 
   async function init() {
     mount();
