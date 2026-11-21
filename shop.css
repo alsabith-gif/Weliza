@@ -199,3 +199,23 @@
 .sn-info{flex:1;min-width:0}.sn-name{font-weight:500;color:var(--text-primary)}.sn-cat{font-size:.8rem;color:var(--text-secondary)}
 .sn-item strong{color:var(--emerald-deep)}
 .sn-all{display:block;width:100%;margin-top:10px;border:0;background:var(--emerald);color:#fff;border-radius:10px;padding:12px;font:inherit;font-weight:600;cursor:pointer}
+/* ===== Card design v2: soft and minimal ===== */
+.pc-grid{gap:24px 22px}
+.pc{background:transparent;box-shadow:none;border-radius:0;overflow:visible;transition:none}
+.pc:hover{transform:none;box-shadow:none}
+.pc-img{border-radius:22px;aspect-ratio:3/4;box-shadow:0 1px 3px rgba(20,57,42,.08)}
+.pc-img img{transition:transform .5s ease}
+.pc:hover .pc-img img{transform:scale(1.03)}
+.pc-off-badge{top:12px;left:12px;background:rgba(244,243,238,.93);color:var(--emerald-deep);font-weight:600;font-size:.82rem;border-radius:10px;padding:7px 11px;letter-spacing:.01em}
+.pc-heart{top:10px;right:10px;width:36px;height:36px;background:rgba(244,243,238,.6);color:var(--emerald-deep)}
+.pc-heart.on{color:#d62f2f}
+.pc-body{padding:14px 4px 4px;gap:10px}
+.pc-name{font-size:1.05rem;font-weight:400;color:var(--emerald-deep);line-height:1.35}
+.pc-price{gap:12px}
+.pc-price strong{font-size:1.55rem;font-weight:700;color:var(--emerald-deep)}
+.pc-price s{font-size:1rem;color:#8a978f}
+.pc-btn{background:transparent;color:var(--emerald-deep);border:1.5px solid var(--emerald-deep);border-radius:12px;padding:13px 10px;font-weight:500}
+.pc-btn:hover{background:var(--emerald-deep);color:#fff}
+.pc-btn:disabled{background:transparent;color:#9aa8a0;border-color:#c7d0cb;cursor:not-allowed}
+.pc-soldout{font-size:.9rem}
+@media(max-width:700px){.pc-grid{gap:22px 14px}.pc-img{border-radius:20px}.pc-body{padding:12px 4px 2px;gap:9px}.pc-name{font-size:1rem}.pc-price strong{font-size:1.4rem}.pc-price s{font-size:.95rem}.pc-btn{padding:12px 6px;font-size:.95rem}}
